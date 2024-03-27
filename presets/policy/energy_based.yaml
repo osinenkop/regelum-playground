@@ -1,5 +1,8 @@
 _target_: src.policy.InvPendulumPolicyEnergyBased
 
-gain: 3
-action_min: -2
-action_max: 2
+gain: 10
+pd_coefs: = [-20, -10]
+softswitch_loc: = np.cos(np.pi/4)
+softswitch_scale: 10
+action_min: -3
+action_max: 3

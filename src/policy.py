@@ -1,6 +1,7 @@
 from regelum.policy import Policy
 import numpy as np
 from regelum.system import InvertedPendulum
+from scipy.special import expit
 
 
 class InvPendulumPolicyPD(Policy):
@@ -21,10 +22,21 @@ class InvPendulumPolicyPD(Policy):
 
 
 class InvPendulumPolicyEnergyBased(Policy):
-    def __init__(self, gain: float, action_min: float, action_max: float):
+    def __init__(
+        self,
+        gain: float,
+        pd_coefs: np.ndarray,
+        softswitch_loc,
+        softswitch_scale,
+        action_min: float,
+        action_max: float,
+    ):
         super().__init__()
 
         self.gain = gain
+        self.pd_coefs = pd_coefs
+        self.softswitch_loc = softswitch_loc
+        self.softswitch_scale = softswitch_scale
         self.action_min = action_min
         self.action_max = action_max
 
@@ -37,15 +49,21 @@ class InvPendulumPolicyEnergyBased(Policy):
         energy_total = (
             m * g * length * (1 - np.cos(theta)) + 0.5 * m * length**2 * theta_vel**2
         )
-        control_action = (
-            self.gain * energy_total**2 * np.sign(theta_vel) * (theta / 100)
+        energy_control_action = self.gain * energy_total**2 * np.sign(theta_vel)
+
+        pd_control_action = np.clip(
+            (self.pd_coefs * observation).sum(),
+            self.action_min,
+            self.action_max,
         )
+
+        alpha = expit((np.cos(theta) - self.softswitch_loc) * self.softswitch_scale)
 
         return np.array(
             [
                 [
                     np.clip(
-                        control_action,
+                        (1 - alpha) * energy_control_action + alpha * pd_control_action,
                         self.action_min,
                         self.action_max,
                     )
