@@ -26,7 +26,7 @@ To run the PD regulator with custom action bounds (default is `[-20, 20]`):
 
 
 ```shell
-python run.py policy=pd policy.action_min=-1 policy.action_max=1 --single-thread --interative --fps=10
+python run.py policy=pd policy.action_min=-3 policy.action_max=3 --single-thread --interative --fps=10
 ```  
 
 ### Step 3: Run Energy-Based Controller
@@ -39,7 +39,7 @@ python run.py policy=energy_based --single-thread --interative --fps=10
 
 For custom action bounds:
 ```shell
-python run.py policy=energy_based policy.action_min=-1 policy.action_max=1 --single-thread --interative --fps=10
+python run.py policy=energy_based policy.action_min=-4 policy.action_max=4 --single-thread --interative --fps=10
 ```  
 
 
