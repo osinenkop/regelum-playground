@@ -1,0 +1,6 @@
+_target_: regelum.scenario.Scenario
+
+
+policy: ~ policy
+simulator: ~ simulator
+sampling_time: $ common.sampling_time

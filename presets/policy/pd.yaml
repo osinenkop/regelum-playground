@@ -1,0 +1,5 @@
+_target_: src.policy.InvPendulumPolicyPID
+
+pd_coefs: = [-20, -10]
+action_min: -20
+action_max: 20

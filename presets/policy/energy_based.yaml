@@ -1,0 +1,4 @@
+_target_:  src.policy.InvPendulumPolicyEnergyBased
+
+action_min: -1
+action_max: 1
