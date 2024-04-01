@@ -1,9 +1,8 @@
 from numpy.core.multiarray import array as array
 from regelum.policy import Policy
 import numpy as np
-from regelum.system import InvertedPendulum
 from scipy.special import expit
-from src.system import InvertedPendulumWithFriction
+from src.system import InvertedPendulum, InvertedPendulumWithFriction
 
 
 class InvPendulumPolicyPD(Policy):
@@ -23,9 +22,42 @@ class InvPendulumPolicyPD(Policy):
         return np.array([[action]])
 
 
-class InvPendulumEnergyBased(Policy):
+class InvertedPendulumEnergyBased(Policy):
+    def __init__(self, gain: float, action_min: float, action_max: float):
+        super().__init__()
+        self.gain = gain
+        self.action_min = action_min
+        self.action_max = action_max
 
-    def __init__(self, gain=5.0, action_min: float = -3.0, action_max: float = 3.0):
+    def get_action(self, observation: np.ndarray) -> np.ndarray:
+
+        params = InvertedPendulum._parameters
+        m, g, length = params["m"], params["g"], params["l"]
+
+        theta = observation[0, 0]
+        theta_vel = observation[0, 1]
+
+        energy_total = (
+            m * g * length * (np.cos(theta) - 1) + 0.5 * m * length**2 * theta_vel**2
+        )
+        energy_control_action = -self.gain * np.sign(theta_vel * energy_total)
+
+        return np.array(
+            [
+                [
+                    np.clip(
+                        energy_control_action,
+                        self.action_min,
+                        self.action_max,
+                    )
+                ]
+            ]
+        )
+
+
+class InvPendulumEnergyBasedFrictionCompensation(Policy):
+
+    def __init__(self, gain: float, action_min: float, action_max: float):
         super().__init__()
         self.gain = gain
         self.action_min = action_min
@@ -59,7 +91,7 @@ class InvPendulumEnergyBased(Policy):
         )
 
 
-class InvPendulumAdaptive(Policy):
+class InvPendulumEnergyBasedFrictionAdaptive(Policy):
 
     def __init__(
         self,
@@ -74,7 +106,7 @@ class InvPendulumAdaptive(Policy):
         self.gain = gain
         self.action_min = action_min
         self.action_max = action_max
-        self.friction_coef_est = 0
+        self.friction_coef_est = friction_coef_est_init
         self.sampling_time = sampling_time
         self.gain_adaptive = gain_adaptive
 

@@ -1,5 +1,6 @@
 defaults:
   - policy: pd
+  - system: inv_pendulum_with_friction
   - simulator: casadi
   - scenario: scenario
   - common: common

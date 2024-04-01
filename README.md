@@ -18,44 +18,51 @@ pip install -r requirements.txt
 Execute the PD regulator using the following command in your terminal:
 
 ```shell
-python run.py policy=pd --interactive --fps=10
+python run.py policy=pd system=inv_pendulum --interactive --fps=10
 ```    
 
+But it doesn't work with default action bounds `[-3, 3]`.
 
-To run the PD regulator with custom action bounds (default is `[-20, 20]`):
+To run the PD regulator with custom action bounds:
 
 
 ```shell
-python run.py policy=pd policy.action_min=-3 policy.action_max=3 --interactive --fps=10
+python run.py policy=pd system=inv_pendulum policy.action_min=-20 policy.action_max=20 --interactive --fps=10
 ```  
 
-### Step 3: Run Energy-Based Controller
+### Step 3: Run Energy-Based Controller on the inverted pendulum without friction
 
 To run the energy-based controller:
 
 ```shell
-python run.py policy=energy_based --interactive --fps=10
+python run.py policy=energy_based system=inv_pendulum --interactive --fps=10
 ```  
 
-For custom action bounds:
-```shell
-python run.py policy=energy_based policy.action_min=-4 policy.action_max=4 --interactive --fps=10
-```  
+### Step 4: Run Energy-Based Controller on the inverted pendulum with friction
 
-### Step 4: Run Adaptive Controller
-
-To run the adaptive controller:
+To run the energy-based controller:
 
 ```shell
-python run.py policy=adaptive --interactive --fps=10
+python run.py policy=energy_based system=inv_pendulum_with_friction --interactive --fps=10
 ```  
 
-For custom action bounds:
+It doesn't work.
+
+### Step 5: Run Energy-Based Controller on the inverted pendulum with friction
+
+But this controller does work:
+
 ```shell
-python run.py policy=adaptive policy.action_min=-4 policy.action_max=4 --interactive --fps=10
+python run.py policy=energy_based_friction_compensation system=inv_pendulum_with_friction --interactive --fps=10
 ```  
 
 
+### Step 6: Run Adaptive Controller on the inverted pendulum with friction
+
+
+```shell
+python run.py policy=energy_based_friction_adaptive system=inv_pendulum_with_friction --interactive --fps=10
+```  
 
 > **Note:**
 >
@@ -66,7 +73,7 @@ python run.py policy=adaptive policy.action_min=-4 policy.action_max=4 --interac
 - [`run.py`](./run.py): The main executable script.
 - [`src/`](./src/): Contains the source code of the repo.
     - [`policy.py`](./src/policy.py): Implements the PD and energy-based policies.
-    - [`system.py`](./src/system.py): Implements the inverted pendulum system with friction.
+    - [`system.py`](./src/system.py): Implements the inverted pendulum system and inverted pendulum system with friction.
 - [`presets/`](./presets/): Houses configuration files.
     - [`common/`](./presets/common): General configurations.
         - [`common.yaml`](./presets/common/common.yaml): Settings for common variables (like sampling time)

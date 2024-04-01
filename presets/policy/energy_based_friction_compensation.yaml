@@ -1,0 +1,5 @@
+_target_: src.policy.InvPendulumEnergyBasedFrictionCompensation
+
+gain: 1
+action_min: -3
+action_max: 3
