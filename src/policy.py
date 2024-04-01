@@ -49,7 +49,8 @@ class InvPendulumPolicyEnergyBased(Policy):
         energy_total = (
             m * g * length * (1 - np.cos(theta)) + 0.5 * m * length**2 * theta_vel**2
         )
-        energy_control_action = self.gain * energy_total**2 * np.sign(theta_vel)
+        # energy_control_action = self.gain * energy_total**2 * np.sign(theta_vel)
+        energy_control_action = self.gain * np.sign(theta_vel)
 
         pd_control_action = np.clip(
             (self.pd_coefs * observation).sum(),

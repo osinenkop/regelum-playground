@@ -3,6 +3,6 @@ _target_: regelum.simulator.CasADi
 system:
   _target_: regelum.system.InvertedPendulum
 state_init: = np.array([[np.pi, 0]])
-time_final: 10
+time_final: 20
 max_step: $ common.sampling_time
 
