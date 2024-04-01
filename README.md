@@ -78,9 +78,12 @@ python run.py policy=energy_based_friction_adaptive system=inv_pendulum_with_fri
     - [`common/`](./presets/common): General configurations.
         - [`common.yaml`](./presets/common/common.yaml): Settings for common variables (like sampling time)
     - [`policy/`](./presets/policy/): Policy-specific configurations.
-        - [`adaptive.yaml`](./presets/policy/adaptive.yaml): Settings for the adaptive controller.
-        - [`energy_based.yaml`](./presets/policy/energy_based.yaml): Settings for the energy-based policy.
         - [`pd.yaml`](./presets/policy/pd.yaml): Settings for the Proportional-Derivative (PD) regulator.
+        - [`energy_based.yaml`](./presets/policy/energy_based.yaml): Settings for the energy-based policy.
+        - [`energy_based_friction_compensation.yaml`](./presets/policy/energy_based_friction_compensation.yaml): Settings for the energy-based policy with friction compensation.
+        - [`energy_based_friction_adaptive.yaml`](./presets/policy/energy_based_friction_adaptive.yaml): Settings for the energy-based policy with adaptive friction coefficient.
+
+
     - [`scenario/`](./presets/scenario/): Scenario configurations.
         - [`scenario.yaml`](./presets/scenario/scenario.yaml): Main orchestrator settings.
     - [`simulator`](./presets/simulator/): Simulator configurations.
