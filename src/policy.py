@@ -1,7 +1,9 @@
+from numpy.core.multiarray import array as array
 from regelum.policy import Policy
 import numpy as np
 from regelum.system import InvertedPendulum
 from scipy.special import expit
+from src.system import InvertedPendulumWithFriction
 
 
 class InvPendulumPolicyPD(Policy):
@@ -64,6 +66,42 @@ class InvPendulumPolicyEnergyBased(Policy):
                 [
                     np.clip(
                         (1 - alpha) * energy_control_action + alpha * pd_control_action,
+                        self.action_min,
+                        self.action_max,
+                    )
+                ]
+            ]
+        )
+
+
+class InvPendulumFriction(Policy):
+
+    def __init__(self, gain=5.0, action_min: float = -3.0, action_max: float = 3.0):
+        super().__init__()
+        self.gain = gain
+        self.action_min = action_min
+        self.action_max = action_max
+
+    def get_action(self, observation: np.ndarray) -> np.ndarray:
+
+        params = InvertedPendulumWithFriction._parameters
+        m, g, length = params["m"], params["g"], params["l"]
+
+        theta = observation[0, 0]
+        theta_vel = observation[0, 1]
+
+        energy_total = (
+            m * g * length * (1 - np.cos(theta)) + 0.5 * m * length**2 * theta_vel**2
+        )
+        energy_control_action = (
+            -self.gain * energy_total * theta_vel - 2 * m * g * length * np.sin(theta)
+        )
+
+        return np.array(
+            [
+                [
+                    np.clip(
+                        energy_control_action,
                         self.action_min,
                         self.action_max,
                     )

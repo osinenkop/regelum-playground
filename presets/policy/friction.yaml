@@ -1,0 +1,5 @@
+_target_: src.policy.InvPendulumFriction
+
+gain: 0.5
+action_min: -20
+action_max: 20
