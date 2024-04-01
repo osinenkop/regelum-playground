@@ -42,7 +42,7 @@ For custom action bounds:
 python run.py policy=energy_based policy.action_min=-4 policy.action_max=4 --interactive --fps=10
 ```  
 
-### Step 3: Run Adaptive Controller
+### Step 4: Run Adaptive Controller
 
 To run the adaptive controller:
 
