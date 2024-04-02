@@ -4,6 +4,25 @@ import numpy as np
 from scipy.special import expit
 from src.system import InvertedPendulum, InvertedPendulumWithFriction
 
+def soft_switch(
+    signal1,
+    signal2,
+    gate,
+    loc=np.cos(np.pi/4),
+    scale=10
+    ):
+    
+    # Soft switch coefficient
+    switch_coeff = expit((gate - loc) * scale)
+    
+    return (1 - switch_coeff) * signal1 + switch_coeff * signal2
+
+def pd_based_on_sin(
+    observation,
+    pd_coefs=[20, 10]
+    ):
+
+    return - pd_coefs[0] * np.sin(observation[0, 0]) - pd_coefs[1] * observation[0, 1]
 
 class InvPendulumPolicyPD(Policy):
     def __init__(self, pd_coefs: np.ndarray, action_min: float, action_max: float):
@@ -41,19 +60,18 @@ class InvertedPendulumEnergyBased(Policy):
             m * g * length * (np.cos(theta) - 1) + 0.5 * m * length**2 * theta_vel**2
         )
         energy_control_action = -self.gain * np.sign(theta_vel * energy_total)
-
+        
         return np.array(
             [
                 [
                     np.clip(
-                        energy_control_action,
+                        soft_switch(signal1=energy_control_action, signal2=pd_based_on_sin(observation), gate=np.cos(theta)),
                         self.action_min,
                         self.action_max,
                     )
                 ]
             ]
         )
-
 
 class InvPendulumEnergyBasedFrictionCompensation(Policy):
 
@@ -82,7 +100,7 @@ class InvPendulumEnergyBasedFrictionCompensation(Policy):
             [
                 [
                     np.clip(
-                        energy_control_action,
+                        soft_switch(signal1=energy_control_action, signal2=pd_based_on_sin(observation), gate=np.cos(theta)),
                         self.action_min,
                         self.action_max,
                     )
@@ -125,6 +143,7 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
             theta_vel * energy_total
         ) + self.friction_coef_est * m * length * theta_vel * np.abs(theta_vel)
 
+        # Parameter adaptation using Euler scheme
         self.friction_coef_est += (
             -self.gain_adaptive
             * energy_total
@@ -133,11 +152,14 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
             * np.abs(theta_vel) ** 3
             * self.sampling_time
         )
+        
+        print("Friction coefficient estimate: ", round(self.friction_coef_est, 2))
+        
         return np.array(
             [
                 [
                     np.clip(
-                        energy_control_action,
+                        soft_switch(signal1=energy_control_action, signal2=pd_based_on_sin(observation), gate=np.cos(theta)),
                         self.action_min,
                         self.action_max,
                     )
