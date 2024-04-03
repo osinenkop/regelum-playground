@@ -70,6 +70,8 @@ class InvertedPendulumEnergyBased(Policy):
 
         energy_control_action = - g / length * 1 / np.sin(theta) * ( m * g * length * theta_vel * np.cos(theta) + m * g**2 * np.sin(theta) **2  +  K1 * energy_potential + K2 * energy_potential_derivative )
 
+        energy_control_action = self.gain * np.sign ( theta_vel )
+
         #####
         
         return np.array(
