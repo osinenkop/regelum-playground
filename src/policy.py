@@ -60,12 +60,26 @@ class InvertedPendulumEnergyBased(Policy):
             m * g * length * (np.cos(theta) - 1) + 0.5 * m * length**2 * theta_vel**2
         )
         energy_control_action = -self.gain * np.sign(theta_vel * energy_total)
+
+        ##### paos
+
+        energy_potential = m * g * length * ( np.cos(theta) - 1 )
+        energy_potential_derivative = - m * g * length * np.sin(theta) * theta_vel
+        K1 = 2
+        K2 = 0.3
+
+        energy_control_action = - g / length * 1 / np.sin(theta) * ( m * g * length * theta_vel * np.cos(theta) + m * g**2 * np.sin(theta) **2  +  K1 * energy_potential + K2 * energy_potential_derivative )
+
+        #####
         
         return np.array(
             [
                 [
                     np.clip(
-                        soft_switch(signal1=energy_control_action, signal2=pd_based_on_sin(observation), gate=np.cos(theta)),
+                        # soft_switch(signal1=energy_control_action, signal2=pd_based_on_sin(observation), gate=np.cos(theta)),
+                        #### paos
+                        energy_control_action,
+                        ####
                         self.action_min,
                         self.action_max,
                     )
