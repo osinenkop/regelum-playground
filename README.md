@@ -68,8 +68,16 @@ python run.py policy=energy_based_friction_adaptive system=inv_pendulum_with_fri
 
 
 ```shell
+python run.py policy=backstepping system=inv_pendulum_with_motor --interactive --fps=10 
+``` 
+
+### Step 8: Run PD Controller on the inverted pendulum with motor
+
+
+```shell
 python run.py policy=motor_pd system=inv_pendulum_with_motor --interactive --fps=10 
 ```  
+
 
 ### Step 8: Run Lyapunov based controller on kinematic three-wheeled robot
 
