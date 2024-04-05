@@ -2,27 +2,25 @@ from numpy.core.multiarray import array as array
 from regelum.policy import Policy
 import numpy as np
 from scipy.special import expit
-from src.system import InvertedPendulum, InvertedPendulumWithFriction
+from src.system import (
+    InvertedPendulum,
+    InvertedPendulumWithFriction,
+    InvertedPendulumWithMotor,
+)
 
-def soft_switch(
-    signal1,
-    signal2,
-    gate,
-    loc=np.cos(np.pi/4),
-    scale=10
-    ):
-    
+
+def soft_switch(signal1, signal2, gate, loc=np.cos(np.pi / 4), scale=10):
+
     # Soft switch coefficient
     switch_coeff = expit((gate - loc) * scale)
-    
+
     return (1 - switch_coeff) * signal1 + switch_coeff * signal2
 
-def pd_based_on_sin(
-    observation,
-    pd_coefs=[20, 10]
-    ):
 
-    return - pd_coefs[0] * np.sin(observation[0, 0]) - pd_coefs[1] * observation[0, 1]
+def pd_based_on_sin(observation, pd_coefs=[20, 10]):
+
+    return -pd_coefs[0] * np.sin(observation[0, 0]) - pd_coefs[1] * observation[0, 1]
+
 
 class InvPendulumPolicyPD(Policy):
     def __init__(self, pd_coefs: np.ndarray, action_min: float, action_max: float):
@@ -60,18 +58,23 @@ class InvertedPendulumEnergyBased(Policy):
             m * g * length * (np.cos(theta) - 1) + 0.5 * m * length**2 * theta_vel**2
         )
         energy_control_action = -self.gain * np.sign(theta_vel * energy_total)
-        
+
         return np.array(
             [
                 [
                     np.clip(
-                        soft_switch(signal1=energy_control_action, signal2=pd_based_on_sin(observation), gate=np.cos(theta)),
+                        soft_switch(
+                            signal1=energy_control_action,
+                            signal2=pd_based_on_sin(observation),
+                            gate=np.cos(theta),
+                        ),
                         self.action_min,
                         self.action_max,
                     )
                 ]
             ]
         )
+
 
 class InvPendulumEnergyBasedFrictionCompensation(Policy):
 
@@ -100,7 +103,11 @@ class InvPendulumEnergyBasedFrictionCompensation(Policy):
             [
                 [
                     np.clip(
-                        soft_switch(signal1=energy_control_action, signal2=pd_based_on_sin(observation), gate=np.cos(theta)),
+                        soft_switch(
+                            signal1=energy_control_action,
+                            signal2=pd_based_on_sin(observation),
+                            gate=np.cos(theta),
+                        ),
                         self.action_min,
                         self.action_max,
                     )
@@ -152,14 +159,18 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
             * np.abs(theta_vel) ** 3
             * self.sampling_time
         )
-        
+
         print("Friction coefficient estimate: ", round(self.friction_coef_est, 2))
-        
+
         return np.array(
             [
                 [
                     np.clip(
-                        soft_switch(signal1=energy_control_action, signal2=pd_based_on_sin(observation), gate=np.cos(theta)),
+                        soft_switch(
+                            signal1=energy_control_action,
+                            signal2=pd_based_on_sin(observation),
+                            gate=np.cos(theta),
+                        ),
                         self.action_min,
                         self.action_max,
                     )
@@ -168,54 +179,32 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
         )
 
 
-# Below is legacy code
-class InvPendulumPolicyEnergyBased(Policy):
-    def __init__(
-        self,
-        gain: float,
-        pd_coefs: np.ndarray,
-        softswitch_loc,
-        softswitch_scale,
-        action_min: float,
-        action_max: float,
-    ):
+class InvertedPendulumBackstepping(Policy):
+
+    def __init__(self, action_min, action_max):
+
         super().__init__()
 
-        self.gain = gain
-        self.pd_coefs = pd_coefs
-        self.softswitch_loc = softswitch_loc
-        self.softswitch_scale = softswitch_scale
         self.action_min = action_min
         self.action_max = action_max
 
+        self.energy_gain = 1
+        self.gain = 40
+
     def get_action(self, observation: np.ndarray) -> np.ndarray:
-        params = InvertedPendulum._parameters
+        params = InvertedPendulumWithMotor._parameters
+
         m, g, length = params["m"], params["g"], params["l"]
+
         theta = observation[0, 0]
         theta_vel = observation[0, 1]
+        torque = observation[0, 2]
 
         energy_total = (
-            m * g * length * (1 - np.cos(theta)) + 0.5 * m * length**2 * theta_vel**2
+            m * g * length * (np.cos(theta) - 1) + 0.5 * m * length**2 * theta_vel**2
         )
-        # energy_control_action = self.gain * energy_total**2 * np.sign(theta_vel)
-        energy_control_action = self.gain * np.sign(theta_vel)
+        energy_control_action = -self.energy_gain * np.sign(theta_vel * energy_total)
 
-        pd_control_action = np.clip(
-            (self.pd_coefs * observation).sum(),
-            self.action_min,
-            self.action_max,
-        )
+        action = -self.gain * (torque - energy_control_action)
 
-        alpha = expit((np.cos(theta) - self.softswitch_loc) * self.softswitch_scale)
-
-        return np.array(
-            [
-                [
-                    np.clip(
-                        (1 - alpha) * energy_control_action + alpha * pd_control_action,
-                        self.action_min,
-                        self.action_max,
-                    )
-                ]
-            ]
-        )
+        return np.array([[np.clip(action, self.action_min, self.action_max)]])

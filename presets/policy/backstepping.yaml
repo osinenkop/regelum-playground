@@ -1,0 +1,4 @@
+_target_: src.policy.InvertedPendulumBackstepping
+
+action_min: -200
+action_max: 200
