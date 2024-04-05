@@ -1,8 +1,10 @@
 _target_: src.policy.InvPendulumEnergyBasedFrictionAdaptive
 
-gain: 0.01 
-action_min: -0.1
-action_max: 0.1
+gain: 0.03
+action_min: -0.3
+action_max: 0.3
 friction_coef_est_init: 0
 sampling_time: $ common.sampling_time
-gain_adaptive: 0.02
+gain_adaptive: 0.001
+pd_coefs: = [0.6, 0.2]
+switch_loc: = np.cos(np.pi / 10)

@@ -7,6 +7,10 @@ from regelum.system import InvertedPendulum
 class InvertedPendulum(InvertedPendulum):
     _parameters = {"m": 0.127, "g": 9.81, "l": 0.337}
 
+    @staticmethod
+    def pendulum_moment(m: float, l: float):
+        return m * l**2 / 3
+
     def _compute_state_dynamics(self, time, state, inputs):
         Dstate = rg.zeros(
             self.dim_state,
@@ -18,11 +22,10 @@ class InvertedPendulum(InvertedPendulum):
             self._parameters["g"],
             self._parameters["l"],
         )
-        pendulum_moment_of_inertia = m * l**2
         Dstate[0] = state[1]
-        Dstate[1] = (
-            g * m * l**2 * rg.sin(state[0]) + inputs[0]
-        ) / pendulum_moment_of_inertia
+        Dstate[1] = (g * m * l * rg.sin(state[0]) + inputs[0]) / self.pendulum_moment(
+            m, l
+        )
 
         return Dstate
 
@@ -42,14 +45,11 @@ class InvertedPendulumWithFriction(InvertedPendulum):
             self._parameters["l"],
             self._parameters["c"],
         )
-        pendulum_moment_of_inertia = m * l**2 / 3
 
         Dstate[0] = state[1]
-        Dstate[1] = (
-            g * m * l**2 * rg.sin(state[0]) + inputs[0]
-        ) / pendulum_moment_of_inertia - friction_coef * state[1] ** 2 * rg.sign(
-            state[1]
-        )
+        Dstate[1] = (g * m * l * rg.sin(state[0]) + inputs[0]) / self.pendulum_moment(
+            m, l
+        ) - friction_coef * state[1] ** 2 * rg.sign(state[1])
 
         return Dstate
 
@@ -60,8 +60,8 @@ class InvertedPendulumWithMotor(InvertedPendulum):
         "g": 9.81,
         "l": 0.337,
         "tau_motor": 0.25,
-        "m_motor": 0.5,
-        "r_motor": 0.05,
+        "m_motor": 0.1,
+        "r_motor": 0.04,
     }
     _dim_state = 3
     _dim_observation = 3
@@ -73,7 +73,7 @@ class InvertedPendulumWithMotor(InvertedPendulum):
         "torque [kg*m**2/s**2]",
     ]
     _inputs_naming = ["motor [kg*m**2/s**2]"]
-    _action_bounds = [[-10000.0, 10000.0]]
+    _action_bounds = [[-1.0, 1.0]]
 
     def _compute_state_dynamics(self, time, state, inputs):
         Dstate = rg.zeros(
@@ -87,14 +87,13 @@ class InvertedPendulumWithMotor(InvertedPendulum):
             self._parameters["l"],
             self._parameters["tau_motor"],
         )
-        pendulum_moment_of_inertia = m * l**2
         motor_moment_of_inertia = (
             self._parameters["m_motor"] * self._parameters["r_motor"] ** 2 / 2
         )
         Dstate[0] = state[1]
         Dstate[1] = (m * g * l * rg.sin(state[0]) + state[2]) / (
-            pendulum_moment_of_inertia  # + motor_moment_of_inertia
+            self.pendulum_moment(m, l) + motor_moment_of_inertia
         )
-        Dstate[2] = (inputs[0]) / tau_motor
+        Dstate[2] = (inputs[0] - state[2]) / tau_motor
 
         return Dstate
