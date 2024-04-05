@@ -1,9 +1,6 @@
 from numpy.core.multiarray import array as array
-from regelum.model import Model, ModelNN
-from regelum.optimizable.optimizers import OptimizerConfig
 from regelum.policy import Policy
 import numpy as np
-from regelum.system import ComposedSystem, System
 from scipy.special import expit
 from src.system import (
     InvertedPendulum,
@@ -82,12 +79,6 @@ class InvertedPendulumEnergyBased(Policy):
                 [
                     np.clip(
                         action,
-                        # soft_switch(
-                        #     signal1=energy_control_action,
-                        #     signal2=pd_based_on_sin(observation, pd_coefs=[0.2, 0.1]),
-                        #     gate=np.cos(theta),
-                        # ),
-                        # energy_control_action,
                         self.action_min,
                         self.action_max,
                     )
@@ -206,8 +197,6 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
             * np.abs(theta_vel) ** 3
             * self.sampling_time
         )
-
-        # print("Friction coefficient estimate: ", round(self.friction_coef_est, 2))
 
         if np.cos(theta) <= self.switch_loc:
             action = energy_control_action
