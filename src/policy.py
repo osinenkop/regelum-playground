@@ -243,12 +243,12 @@ class InvertedPendulumBackstepping(Policy):
             + 0.5 * InvertedPendulumWithMotor.pendulum_moment(m, length) * theta_vel**2
         )
         energy_control_action = -self.energy_gain * np.sign(theta_vel * energy_total)
+        backstepping_action = torque - self.gain * (torque - energy_control_action)
 
-        if np.cos(theta) <= self.switch_loc:
-            action = torque - self.gain * (torque - energy_control_action)
-        else:
-            action = -np.sin(theta) * self.pd_coefs[0] - theta_vel * self.pd_coefs[1]
+        coef = expit((np.cos(theta) - self.switch_loc) * 20)
+        action_pd = -np.sin(theta) * self.pd_coefs[0] - theta_vel * self.pd_coefs[1]
 
+        action = (1 - coef) * backstepping_action + coef * action_pd
         return np.array(
             [
                 [

@@ -2,7 +2,7 @@ _target_: src.policy.InvertedPendulumBackstepping
 
 energy_gain: 0.03
 gain: 2.
-pd_coefs: = [.8, .4]
-switch_loc: = np.cos(np.pi / 10)
-action_min: -1.
-action_max: 1.
+pd_coefs: = [.4, .25]
+switch_loc: = np.cos(np.pi / 8)
+action_min: -0.2
+action_max: 0.2
