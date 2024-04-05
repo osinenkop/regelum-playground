@@ -64,6 +64,26 @@ python run.py policy=energy_based_friction_compensation system=inv_pendulum_with
 python run.py policy=energy_based_friction_adaptive system=inv_pendulum_with_friction --interactive --fps=10
 ```  
 
+### Step 7: Run Backstepping Controller on the inverted pendulum with motor
+
+
+```shell
+python run.py policy=motor_pd system=inv_pendulum_with_motor --interactive --fps=10 
+```  
+
+### Step 8: Run Lyapunov based controller on kinematic three-wheeled robot
+
+```shell
+python run.py policy=3wrobot_kin_dissasembled system=3wrobot_kin --interactive --fps=10
+```  
+
+### Step 9: Run backstepping controller on dynamic three-wheeled robot
+
+```shell
+python run.py policy=3wrobot_kin_dissasembled system=3wrobot_kin --interactive --fps=10
+```  
+
+
 > **Note:**
 >
 > For the `--fps` parameter, you can select any suitable value to ensure a smooth experience (e.g., `--fps=2`, `--fps=10`, `--fps=20`, etc.).

@@ -1,5 +1,5 @@
 _target_: src.policy.InvertedPendulumEnergyBased
 
-gain: 1.
-action_min: -3
-action_max: 3
+gain: 0.01 
+action_min: -0.1
+action_max: 0.1

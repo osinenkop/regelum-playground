@@ -4,6 +4,7 @@ defaults:
   - simulator: casadi
   - scenario: scenario
   - common: common
+  - initial_conditions: ${system}
 
 callbacks:
   - regelum.callback.ScenarioStepLogger
