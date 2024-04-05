@@ -222,7 +222,9 @@ class InvertedPendulumWithMotorPD(Policy):
         self.action_min = action_min
         self.action_max = action_max
 
-        self.pd_coefs = [100, 110, 10]
+        # self.pd_coefs = [100, 110, 10]
+
+        self.pd_coefs = [150, 160, 12]
 
     def get_action(self, observation: np.ndarray) -> np.ndarray:
         params = InvertedPendulumWithMotor._parameters

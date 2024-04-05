@@ -1,0 +1,6 @@
+_target_: regelum.policy.ThreeWheeledRobotDisassembledCLFPolicy
+
+scenario_gain: 2
+optimizer_config: 
+  _target_: regelum.CasadiOptimizerConfig
+  
