@@ -1,6 +1,9 @@
 from numpy.core.multiarray import array as array
+from regelum.model import Model, ModelNN
+from regelum.optimizable.optimizers import OptimizerConfig
 from regelum.policy import Policy
 import numpy as np
+from regelum.system import ComposedSystem, System
 from scipy.special import expit
 from src.system import (
     InvertedPendulum,
@@ -207,4 +210,32 @@ class InvertedPendulumBackstepping(Policy):
 
         action = -self.gain * (torque - energy_control_action)
 
+        return np.array([[np.clip(action, self.action_min, self.action_max)]])
+
+
+class InvertedPendulumWithMotorPD(Policy):
+
+    def __init__(self, action_min, action_max):
+
+        super().__init__()
+
+        self.action_min = action_min
+        self.action_max = action_max
+
+        self.pd_coefs = [100, 110, 10]
+
+    def get_action(self, observation: np.ndarray) -> np.ndarray:
+        params = InvertedPendulumWithMotor._parameters
+
+        m, g, length = params["m"], params["g"], params["l"]
+
+        theta = observation[0, 0]
+        theta_vel = observation[0, 1]
+        torque = observation[0, 2]
+
+        action = (
+            -theta * self.pd_coefs[0]
+            - theta_vel * self.pd_coefs[1]
+            - torque * self.pd_coefs[2]
+        )
         return np.array([[np.clip(action, self.action_min, self.action_max)]])

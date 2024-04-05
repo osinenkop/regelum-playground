@@ -1,0 +1,6 @@
+_target_: src.policy.InvertedPendulumWithMotorPD
+
+
+# pd_coefs: = [20, 10, 10]
+action_min: -200
+action_max: 200
