@@ -61,7 +61,7 @@ class InvertedPendulumWithMotor(InvertedPendulum):
         "m": 0.127,
         "g": 9.81,
         "l": 0.337,
-        "tau_motor": 0.25,
+        "tau_motor": 0.05,
         "m_motor": 0.1,
         "r_motor": 0.04,
     }

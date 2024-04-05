@@ -249,6 +249,14 @@ class InvertedPendulumBackstepping(Policy):
         action_pd = -np.sin(theta) * self.pd_coefs[0] - theta_vel * self.pd_coefs[1]
 
         action = (1 - coef) * backstepping_action + coef * action_pd
+
+        if np.mod(np.cos(theta), 2* np.pi) <= np.pi/8:
+            action = action_pd
+        else:
+            action = backstepping_action
+
+        # action = backstepping_action
+
         return np.array(
             [
                 [
@@ -278,5 +286,5 @@ class InvertedPendulumWithMotorPD(Policy):
         theta_vel = observation[0, 1]
         torque = observation[0, 2]
 
-        action = -theta * self.pd_coefs[0] - theta_vel * self.pd_coefs[1]
+        action = -theta * self.pd_coefs[0] - theta_vel * self.pd_coefs[1] + torque
         return np.array([[np.clip(action, self.action_min, self.action_max)]])

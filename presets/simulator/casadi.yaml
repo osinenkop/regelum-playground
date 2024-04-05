@@ -4,6 +4,6 @@ system: ~ system
 # state_init: = np.array([[np.pi / 9, 0, 0.]])
 
 state_init: $ initial_conditions.state_init
-time_final: 30
+time_final: 100
 max_step: $ common.sampling_time
 
