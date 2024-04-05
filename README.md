@@ -79,13 +79,13 @@ python run.py policy=motor_pd system=inv_pendulum_with_motor --interactive --fps
 ```  
 
 
-### Step 8: Run Lyapunov based controller on kinematic three-wheeled robot
+### Step 9: Run Lyapunov based controller on kinematic three-wheeled robot
 
 ```shell
 python run.py policy=3wrobot_kin_dissasembled system=3wrobot_kin --interactive --fps=10
 ```  
 
-### Step 9: Run backstepping controller on dynamic three-wheeled robot
+### Step 10: Run backstepping controller on dynamic three-wheeled robot
 
 ```shell
 python run.py policy=3wrobot_kin_dissasembled system=3wrobot_kin --interactive --fps=10
