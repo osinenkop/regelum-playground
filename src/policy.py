@@ -64,7 +64,7 @@ class InvertedPendulumEnergyBased(Policy):
         theta_vel = observation[0, 1]
 
         energy_total = (
-            m * g * length * (np.cos(theta) - 1)
+            m * g * length * (np.cos(theta) - 1) / 2
             + 0.5 * InvertedPendulum.pendulum_moment(m, length) * theta_vel**2
         )
         energy_control_action = -self.gain * np.sign(theta_vel * energy_total)
@@ -112,7 +112,7 @@ class InvPendulumEnergyBasedFrictionCompensation(Policy):
         theta = observation[0, 0]
         theta_vel = observation[0, 1]
         energy_total = (
-            m * g * length * (np.cos(theta) - 1)
+            m * g * length * (np.cos(theta) - 1) / 2
             + 0.5
             * InvertedPendulumWithFriction.pendulum_moment(m, length)
             * theta_vel**2
@@ -175,7 +175,7 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
         theta_vel = observation[0, 1]
 
         energy_total = (
-            m * g * length * (np.cos(theta) - 1)
+            m * g * length * (np.cos(theta) - 1) / 2
             + 0.5
             * InvertedPendulumWithFriction.pendulum_moment(m, length)
             * theta_vel**2
@@ -239,19 +239,15 @@ class InvertedPendulumBackstepping(Policy):
         torque = observation[0, 2]
 
         energy_total = (
-            m * g * length * (np.cos(theta) - 1)
+            m * g * length * (np.cos(theta) - 1) / 2
             + 0.5 * InvertedPendulumWithMotor.pendulum_moment(m, length) * theta_vel**2
         )
         energy_control_action = -self.energy_gain * np.sign(theta_vel * energy_total)
 
         if np.cos(theta) <= self.switch_loc:
-            action = -self.gain * (torque - energy_control_action)
+            action = torque - self.gain * (torque - energy_control_action)
         else:
-            action = (
-                -np.sin(theta) * self.pd_coefs[0]
-                - theta_vel * self.pd_coefs[1]
-                - torque * self.pd_coefs[2]
-            )
+            action = -np.sin(theta) * self.pd_coefs[0] - theta_vel * self.pd_coefs[1]
 
         return np.array(
             [
@@ -282,9 +278,5 @@ class InvertedPendulumWithMotorPD(Policy):
         theta_vel = observation[0, 1]
         torque = observation[0, 2]
 
-        action = (
-            -theta * self.pd_coefs[0]
-            - theta_vel * self.pd_coefs[1]
-            - torque * self.pd_coefs[2]
-        )
+        action = -theta * self.pd_coefs[0] - theta_vel * self.pd_coefs[1]
         return np.array([[np.clip(action, self.action_min, self.action_max)]])

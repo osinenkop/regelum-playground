@@ -23,9 +23,9 @@ class InvertedPendulum(InvertedPendulum):
             self._parameters["l"],
         )
         Dstate[0] = state[1]
-        Dstate[1] = (g * m * l * rg.sin(state[0]) + inputs[0]) / self.pendulum_moment(
-            m, l
-        )
+        Dstate[1] = (
+            g * m * l * rg.sin(state[0]) / 2 + inputs[0]
+        ) / self.pendulum_moment(m, l)
 
         return Dstate
 
@@ -47,9 +47,11 @@ class InvertedPendulumWithFriction(InvertedPendulum):
         )
 
         Dstate[0] = state[1]
-        Dstate[1] = (g * m * l * rg.sin(state[0]) + inputs[0]) / self.pendulum_moment(
-            m, l
-        ) - friction_coef * state[1] ** 2 * rg.sign(state[1])
+        Dstate[1] = (
+            g * m * l * rg.sin(state[0]) / 2 + inputs[0]
+        ) / self.pendulum_moment(m, l) - friction_coef * state[1] ** 2 * rg.sign(
+            state[1]
+        )
 
         return Dstate
 
@@ -91,7 +93,7 @@ class InvertedPendulumWithMotor(InvertedPendulum):
             self._parameters["m_motor"] * self._parameters["r_motor"] ** 2 / 2
         )
         Dstate[0] = state[1]
-        Dstate[1] = (m * g * l * rg.sin(state[0]) + state[2]) / (
+        Dstate[1] = (m * g * l * rg.sin(state[0]) / 2 + state[2]) / (
             self.pendulum_moment(m, l) + motor_moment_of_inertia
         )
         Dstate[2] = (inputs[0] - state[2]) / tau_motor
