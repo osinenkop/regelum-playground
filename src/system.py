@@ -3,6 +3,8 @@ from regelum.system import InvertedPendulum
 
 
 class InvertedPendulum(InvertedPendulum):
+    """Parameters of this system roughly resemble those of a Quanser test stand Rotary Inverted Pendulum."""
+
     _parameters = {"mass": 0.127, "grav_const": 9.81, "length": 0.337}
 
     def pendulum_moment(self):
@@ -28,6 +30,8 @@ class InvertedPendulum(InvertedPendulum):
 
 
 class InvertedPendulumWithFriction(InvertedPendulum):
+    """Parameters of this system roughly resemble those of a Quanser test stand Rotary Inverted Pendulum."""
+
     _parameters = {
         "mass": 0.127,
         "grav_const": 9.81,
@@ -57,6 +61,8 @@ class InvertedPendulumWithFriction(InvertedPendulum):
 
 
 class InvertedPendulumWithMotor(InvertedPendulum):
+    """Parameters of this system roughly resemble those of a Quanser test stand Rotary Inverted Pendulum."""
+
     _parameters = {
         "mass": 0.127,
         "grav_const": 9.81,
@@ -72,9 +78,9 @@ class InvertedPendulumWithMotor(InvertedPendulum):
     _observation_naming = _state_naming = [
         "angle [rad]",
         "angular velocity [rad/s]",
-        "torque [kg*m**2/s**2]",
+        "torque [N*m]",
     ]
-    _inputs_naming = ["motor [kg*m**2/s**2]"]
+    _inputs_naming = ["motor [N*m/s]"]
     _action_bounds = [[-1.0, 1.0]]
 
     def motor_moment(self):

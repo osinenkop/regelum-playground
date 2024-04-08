@@ -240,12 +240,12 @@ class InvertedPendulumBackstepping(Policy):
 
     def __init__(
         self,
-        energy_gain,
-        backstepping_gain,
-        switch_loc,
-        pd_coeffs,
-        action_min,
-        action_max,
+        energy_gain: float,
+        backstepping_gain: float,
+        switch_loc: float,
+        pd_coeffs: list[float],
+        action_min: float,
+        action_max: float,
         system: InvertedPendulumWithMotor,
     ):
 
