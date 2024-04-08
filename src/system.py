@@ -1,15 +1,13 @@
-from regelum.system import System
 from regelum.utils import rg
-from regelum import callback
 from regelum.system import InvertedPendulum
 
 
 class InvertedPendulum(InvertedPendulum):
-    _parameters = {"m": 0.127, "g": 9.81, "l": 0.337}
+    _parameters = {"mass": 0.127, "grav_const": 9.81, "length": 0.337}
 
     @staticmethod
-    def pendulum_moment(m: float, l: float):
-        return m * l**2 / 3
+    def pendulum_moment(mass: float, length: float):
+        return mass * length**2 / 3
 
     def _compute_state_dynamics(self, time, state, inputs):
         Dstate = rg.zeros(
@@ -17,21 +15,26 @@ class InvertedPendulum(InvertedPendulum):
             prototype=(state, inputs),
         )
 
-        m, g, l = (
-            self._parameters["m"],
-            self._parameters["g"],
-            self._parameters["l"],
+        mass, grav_const, length = (
+            self._parameters["mass"],
+            self._parameters["grav_const"],
+            self._parameters["length"],
         )
         Dstate[0] = state[1]
         Dstate[1] = (
-            g * m * l * rg.sin(state[0]) / 2 + inputs[0]
-        ) / self.pendulum_moment(m, l)
+            grav_const * mass * length * rg.sin(state[0]) / 2 + inputs[0]
+        ) / self.pendulum_moment(mass, length)
 
         return Dstate
 
 
 class InvertedPendulumWithFriction(InvertedPendulum):
-    _parameters = {"m": 0.127, "g": 9.81, "l": 0.337, "c": 0.08}
+    _parameters = {
+        "mass": 0.127,
+        "grav_const": 9.81,
+        "length": 0.337,
+        "friction_coeff": 0.08,
+    }
 
     def _compute_state_dynamics(self, time, state, inputs):
         Dstate = rg.zeros(
@@ -39,17 +42,19 @@ class InvertedPendulumWithFriction(InvertedPendulum):
             prototype=(state, inputs),
         )
 
-        m, g, l, friction_coef = (
-            self._parameters["m"],
-            self._parameters["g"],
-            self._parameters["l"],
-            self._parameters["c"],
+        mass, grav_const, length, friction_coeff = (
+            self._parameters["mass"],
+            self._parameters["grav_const"],
+            self._parameters["length"],
+            self._parameters["friction_coeff"],
         )
 
         Dstate[0] = state[1]
         Dstate[1] = (
-            g * m * l * rg.sin(state[0]) / 2 + inputs[0]
-        ) / self.pendulum_moment(m, l) - friction_coef * state[1] ** 2 * rg.sign(
+            grav_const * mass * length * rg.sin(state[0]) / 2 + inputs[0]
+        ) / self.pendulum_moment(mass, length) - friction_coeff * state[
+            1
+        ] ** 2 * rg.sign(
             state[1]
         )
 
@@ -58,9 +63,9 @@ class InvertedPendulumWithFriction(InvertedPendulum):
 
 class InvertedPendulumWithMotor(InvertedPendulum):
     _parameters = {
-        "m": 0.127,
-        "g": 9.81,
-        "l": 0.337,
+        "mass": 0.127,
+        "grav_const": 9.81,
+        "length": 0.337,
         "tau_motor": 0.05,
         "m_motor": 0.1,
         "r_motor": 0.04,
@@ -83,18 +88,18 @@ class InvertedPendulumWithMotor(InvertedPendulum):
             prototype=(state, inputs),
         )
 
-        m, g, l, tau_motor = (
-            self._parameters["m"],
-            self._parameters["g"],
-            self._parameters["l"],
+        mass, grav_const, length, tau_motor = (
+            self._parameters["mass"],
+            self._parameters["grav_const"],
+            self._parameters["length"],
             self._parameters["tau_motor"],
         )
         motor_moment_of_inertia = (
             self._parameters["m_motor"] * self._parameters["r_motor"] ** 2 / 2
         )
         Dstate[0] = state[1]
-        Dstate[1] = (m * g * l * rg.sin(state[0]) / 2 + state[2]) / (
-            self.pendulum_moment(m, l) + motor_moment_of_inertia
+        Dstate[1] = (mass * grav_const * length * rg.sin(state[0]) / 2 + state[2]) / (
+            self.pendulum_moment(mass, length) + motor_moment_of_inertia
         )
         Dstate[2] = (inputs[0] - state[2]) / tau_motor
 

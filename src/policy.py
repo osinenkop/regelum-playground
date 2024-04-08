@@ -17,22 +17,29 @@ def soft_switch(signal1, signal2, gate, loc=np.cos(np.pi / 4), scale=10):
     return (1 - switch_coeff) * signal1 + switch_coeff * signal2
 
 
-def pd_based_on_sin(observation, pd_coefs=[20, 10]):
+def hard_switch(signal1: float, signal2: float, condition: bool):
+    if condition:
+        return signal1
+    else:
+        return signal2
 
-    return -pd_coefs[0] * np.sin(observation[0, 0]) - pd_coefs[1] * observation[0, 1]
+
+def pd_based_on_sin(observation, pd_coeffs=[20, 10]):
+
+    return -pd_coeffs[0] * np.sin(observation[0, 0]) - pd_coeffs[1] * observation[0, 1]
 
 
 class InvPendulumPolicyPD(Policy):
-    def __init__(self, pd_coefs: np.ndarray, action_min: float, action_max: float):
+    def __init__(self, pd_coeffs: np.ndarray, action_min: float, action_max: float):
         super().__init__()
 
-        self.pid_coefs = np.array(pd_coefs).reshape(1, -1)
+        self.pid_coeffs = np.array(pd_coeffs).reshape(1, -1)
         self.action_min = action_min
         self.action_max = action_max
 
     def get_action(self, observation: np.ndarray):
         action = np.clip(
-            (self.pid_coefs * observation).sum(),
+            (self.pid_coeffs * observation).sum(),
             self.action_min,
             self.action_max,
         )
@@ -46,33 +53,38 @@ class InvertedPendulumEnergyBased(Policy):
         action_min: float,
         action_max: float,
         switch_loc: float,
-        pd_coefs: np.ndarray,
+        pd_coeffs: np.ndarray,
     ):
         super().__init__()
         self.gain = gain
         self.action_min = action_min
         self.action_max = action_max
         self.switch_loc = switch_loc
-        self.pd_coefs = pd_coefs
+        self.pd_coeffs = pd_coeffs
 
     def get_action(self, observation: np.ndarray) -> np.ndarray:
 
         params = InvertedPendulum._parameters
-        m, g, length = params["m"], params["g"], params["l"]
+        mass, grav_const, length = (
+            params["mass"],
+            params["grav_const"],
+            params["length"],
+        )
 
-        theta = observation[0, 0]
-        theta_vel = observation[0, 1]
+        angle = observation[0, 0]
+        angle_vel = observation[0, 1]
 
         energy_total = (
-            m * g * length * (np.cos(theta) - 1) / 2
-            + 0.5 * InvertedPendulum.pendulum_moment(m, length) * theta_vel**2
+            mass * grav_const * length * (np.cos(angle) - 1) / 2
+            + 0.5 * InvertedPendulum.pendulum_moment(mass, length) * angle_vel**2
         )
-        energy_control_action = -self.gain * np.sign(theta_vel * energy_total)
+        energy_control_action = -self.gain * np.sign(angle_vel * energy_total)
 
-        if np.cos(theta) <= self.switch_loc:
-            action = energy_control_action
-        else:
-            action = -self.pd_coefs[0] * np.sin(theta) - self.pd_coefs[1] * theta_vel
+        action = hard_switch(
+            signal1=energy_control_action,
+            signal2=-self.pd_coeffs[0] * np.sin(angle) - self.pd_coeffs[1] * angle_vel,
+            condition=np.cos(angle) <= self.switch_loc,
+        )
 
         return np.array(
             [
@@ -95,40 +107,46 @@ class InvPendulumEnergyBasedFrictionCompensation(Policy):
         action_min: float,
         action_max: float,
         switch_loc: float,
-        pd_coefs: np.ndarray,
+        pd_coeffs: np.ndarray,
     ):
         super().__init__()
         self.gain = gain
         self.action_min = action_min
         self.action_max = action_max
         self.switch_loc = switch_loc
-        self.pd_coefs = pd_coefs
+        self.pd_coeffs = pd_coeffs
 
     def get_action(self, observation: np.ndarray) -> np.ndarray:
 
         params = InvertedPendulumWithFriction._parameters
-        m, g, length, friction_coef = params["m"], params["g"], params["l"], params["c"]
+        mass, grav_const, length, friction_coeff = (
+            params["mass"],
+            params["grav_const"],
+            params["length"],
+            params["friction_coeff"],
+        )
 
-        theta = observation[0, 0]
-        theta_vel = observation[0, 1]
+        angle = observation[0, 0]
+        angle_vel = observation[0, 1]
         energy_total = (
-            m * g * length * (np.cos(theta) - 1) / 2
+            mass * grav_const * length * (np.cos(angle) - 1) / 2
             + 0.5
-            * InvertedPendulumWithFriction.pendulum_moment(m, length)
-            * theta_vel**2
+            * InvertedPendulumWithFriction.pendulum_moment(mass, length)
+            * angle_vel**2
         )
         energy_control_action = -self.gain * np.sign(
-            theta_vel * energy_total
-        ) + friction_coef * InvertedPendulumWithFriction.pendulum_moment(
-            m, length
-        ) * theta_vel * np.abs(
-            theta_vel
+            angle_vel * energy_total
+        ) + friction_coeff * InvertedPendulumWithFriction.pendulum_moment(
+            mass, length
+        ) * angle_vel * np.abs(
+            angle_vel
         )
 
-        if np.cos(theta) <= self.switch_loc:
-            action = energy_control_action
-        else:
-            action = -self.pd_coefs[0] * np.sin(theta) - self.pd_coefs[1] * theta_vel
+        action = hard_switch(
+            signal1=energy_control_action,
+            signal2=-self.pd_coeffs[0] * np.sin(angle) - self.pd_coeffs[1] * angle_vel,
+            condition=np.cos(angle) <= self.switch_loc,
+        )
 
         return np.array(
             [
@@ -153,56 +171,60 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
         sampling_time: float,
         gain_adaptive: float,
         switch_loc: float,
-        pd_coefs: list,
-        friction_coef_est_init: float = 0,
+        pd_coeffs: list,
+        friction_coeff_est_init: float = 0,
     ):
         super().__init__()
         self.gain = gain
         self.action_min = action_min
         self.action_max = action_max
-        self.friction_coef_est = friction_coef_est_init
+        self.friction_coeff_est = friction_coeff_est_init
         self.sampling_time = sampling_time
         self.gain_adaptive = gain_adaptive
         self.switch_loc = switch_loc
-        self.pd_coefs = pd_coefs
+        self.pd_coeffs = pd_coeffs
 
     def get_action(self, observation: np.ndarray) -> np.ndarray:
 
         params = InvertedPendulumWithFriction._parameters
-        m, g, length = params["m"], params["g"], params["l"]
+        mass, grav_const, length = (
+            params["mass"],
+            params["grav_const"],
+            params["length"],
+        )
 
-        theta = observation[0, 0]
-        theta_vel = observation[0, 1]
+        angle = observation[0, 0]
+        angle_vel = observation[0, 1]
 
         energy_total = (
-            m * g * length * (np.cos(theta) - 1) / 2
+            mass * grav_const * length * (np.cos(angle) - 1) / 2
             + 0.5
-            * InvertedPendulumWithFriction.pendulum_moment(m, length)
-            * theta_vel**2
+            * InvertedPendulumWithFriction.pendulum_moment(mass, length)
+            * angle_vel**2
         )
         energy_control_action = -self.gain * np.sign(
-            theta_vel * energy_total
-        ) + self.friction_coef_est * InvertedPendulumWithFriction.pendulum_moment(
-            m, length
-        ) * theta_vel * np.abs(
-            theta_vel
+            angle_vel * energy_total
+        ) + self.friction_coeff_est * InvertedPendulumWithFriction.pendulum_moment(
+            mass, length
+        ) * angle_vel * np.abs(
+            angle_vel
         )
 
         # Parameter adaptation using Euler scheme
-        self.friction_coef_est += (
+        self.friction_coeff_est += (
             -self.gain_adaptive
             * energy_total
-            * m
+            * mass
             * length**2
-            * np.abs(theta_vel) ** 3
+            * np.abs(angle_vel) ** 3
             * self.sampling_time
         )
 
-        if np.cos(theta) <= self.switch_loc:
-            action = energy_control_action
-        else:
-            action = -self.pd_coefs[0] * np.sin(theta) - self.pd_coefs[1] * theta_vel
-
+        action = hard_switch(
+            signal1=energy_control_action,
+            signal2=-self.pd_coeffs[0] * np.sin(angle) - self.pd_coeffs[1] * angle_vel,
+            condition=np.cos(angle) <= self.switch_loc,
+        )
         return np.array(
             [
                 [
@@ -218,7 +240,9 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
 
 class InvertedPendulumBackstepping(Policy):
 
-    def __init__(self, energy_gain, gain, switch_loc, pd_coefs, action_min, action_max):
+    def __init__(
+        self, energy_gain, gain, switch_loc, pd_coeffs, action_min, action_max
+    ):
 
         super().__init__()
 
@@ -227,35 +251,36 @@ class InvertedPendulumBackstepping(Policy):
         self.switch_loc = switch_loc
         self.energy_gain = energy_gain
         self.gain = gain
-        self.pd_coefs = pd_coefs
+        self.pd_coeffs = pd_coeffs
 
     def get_action(self, observation: np.ndarray) -> np.ndarray:
         params = InvertedPendulumWithMotor._parameters
 
-        m, g, length = params["m"], params["g"], params["l"]
+        mass, grav_const, length = (
+            params["mass"],
+            params["grav_const"],
+            params["length"],
+        )
 
-        theta = observation[0, 0]
-        theta_vel = observation[0, 1]
+        angle = observation[0, 0]
+        angle_vel = observation[0, 1]
         torque = observation[0, 2]
 
         energy_total = (
-            m * g * length * (np.cos(theta) - 1) / 2
-            + 0.5 * InvertedPendulumWithMotor.pendulum_moment(m, length) * theta_vel**2
+            mass * grav_const * length * (np.cos(angle) - 1) / 2
+            + 0.5
+            * InvertedPendulumWithMotor.pendulum_moment(mass, length)
+            * angle_vel**2
         )
-        energy_control_action = -self.energy_gain * np.sign(theta_vel * energy_total)
+        energy_control_action = -self.energy_gain * np.sign(angle_vel * energy_total)
         backstepping_action = torque - self.gain * (torque - energy_control_action)
+        action_pd = -self.pd_coeffs[0] * np.sin(angle) - self.pd_coeffs[1] * angle_vel
 
-        coef = expit((np.cos(theta) - self.switch_loc) * 5)
-        action_pd = -np.sin(theta) * self.pd_coefs[0] - theta_vel * self.pd_coefs[1]
-
-        action = (1 - coef) * backstepping_action + coef * action_pd
-
-        if np.mod(np.cos(theta), 2* np.pi) <= np.pi/8:
-            action = action_pd
-        else:
-            action = backstepping_action
-
-        # action = backstepping_action
+        action = hard_switch(
+            signal1=backstepping_action,
+            signal2=action_pd,
+            condition=(np.cos(angle) - 1) ** 2 + angle_vel**2 >= 0.01,
+        )
 
         return np.array(
             [
@@ -272,19 +297,18 @@ class InvertedPendulumBackstepping(Policy):
 
 class InvertedPendulumWithMotorPD(Policy):
 
-    def __init__(self, pd_coefs, action_min, action_max):
+    def __init__(self, pd_coeffs: list, action_min: float, action_max: float):
 
         super().__init__()
 
         self.action_min = action_min
         self.action_max = action_max
 
-        self.pd_coefs = pd_coefs
+        self.pd_coeffs = pd_coeffs
 
     def get_action(self, observation: np.ndarray) -> np.ndarray:
-        theta = observation[0, 0]
-        theta_vel = observation[0, 1]
-        torque = observation[0, 2]
+        angle = observation[0, 0]
+        angle_vel = observation[0, 1]
 
-        action = -theta * self.pd_coefs[0] - theta_vel * self.pd_coefs[1] + torque
+        action = -self.pd_coeffs[0] * angle - self.pd_coeffs[1] * angle_vel
         return np.array([[np.clip(action, self.action_min, self.action_max)]])

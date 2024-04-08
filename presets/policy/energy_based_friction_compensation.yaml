@@ -1,7 +1,7 @@
 _target_: src.policy.InvPendulumEnergyBasedFrictionCompensation
 
 gain: 0.03
-action_min: -0.3
-action_max: 0.3
-pd_coefs: = [0.6, 0.2]
+action_min: -0.1
+action_max: 0.1
+pd_coeffs: = [0.6, 0.2]
 switch_loc: = np.cos(np.pi / 10)
