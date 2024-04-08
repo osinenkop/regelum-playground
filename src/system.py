@@ -5,9 +5,8 @@ from regelum.system import InvertedPendulum
 class InvertedPendulum(InvertedPendulum):
     _parameters = {"mass": 0.127, "grav_const": 9.81, "length": 0.337}
 
-    @staticmethod
-    def pendulum_moment(mass: float, length: float):
-        return mass * length**2 / 3
+    def pendulum_moment(self):
+        return self._parameters["mass"] * self._parameters["length"] ** 2 / 3
 
     def _compute_state_dynamics(self, time, state, inputs):
         Dstate = rg.zeros(
@@ -23,7 +22,7 @@ class InvertedPendulum(InvertedPendulum):
         Dstate[0] = state[1]
         Dstate[1] = (
             grav_const * mass * length * rg.sin(state[0]) / 2 + inputs[0]
-        ) / self.pendulum_moment(mass, length)
+        ) / self.pendulum_moment()
 
         return Dstate
 
@@ -52,11 +51,7 @@ class InvertedPendulumWithFriction(InvertedPendulum):
         Dstate[0] = state[1]
         Dstate[1] = (
             grav_const * mass * length * rg.sin(state[0]) / 2 + inputs[0]
-        ) / self.pendulum_moment(mass, length) - friction_coeff * state[
-            1
-        ] ** 2 * rg.sign(
-            state[1]
-        )
+        ) / self.pendulum_moment() - friction_coeff * state[1] ** 2 * rg.sign(state[1])
 
         return Dstate
 
@@ -82,6 +77,9 @@ class InvertedPendulumWithMotor(InvertedPendulum):
     _inputs_naming = ["motor [kg*m**2/s**2]"]
     _action_bounds = [[-1.0, 1.0]]
 
+    def motor_moment(self):
+        return self._parameters["m_motor"] * self._parameters["r_motor"] ** 2 / 2
+
     def _compute_state_dynamics(self, time, state, inputs):
         Dstate = rg.zeros(
             self.dim_state,
@@ -94,12 +92,10 @@ class InvertedPendulumWithMotor(InvertedPendulum):
             self._parameters["length"],
             self._parameters["tau_motor"],
         )
-        motor_moment_of_inertia = (
-            self._parameters["m_motor"] * self._parameters["r_motor"] ** 2 / 2
-        )
+
         Dstate[0] = state[1]
         Dstate[1] = (mass * grav_const * length * rg.sin(state[0]) / 2 + state[2]) / (
-            self.pendulum_moment(mass, length) + motor_moment_of_inertia
+            self.pendulum_moment() + self.motor_moment()
         )
         Dstate[2] = (inputs[0] - state[2]) / tau_motor
 

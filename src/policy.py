@@ -78,7 +78,7 @@ class InvertedPendulumEnergyBased(Policy):
 
         energy_total = (
             mass * grav_const * length * (np.cos(angle) - 1) / 2
-            + 0.5 * self.system.pendulum_moment(mass, length) * angle_vel**2
+            + 0.5 * self.system.pendulum_moment() * angle_vel**2
         )
         energy_control_action = -self.gain * np.sign(angle_vel * energy_total)
 
@@ -134,13 +134,11 @@ class InvPendulumEnergyBasedFrictionCompensation(Policy):
         angle_vel = observation[0, 1]
         energy_total = (
             mass * grav_const * length * (np.cos(angle) - 1) / 2
-            + 0.5 * self.system.pendulum_moment(mass, length) * angle_vel**2
+            + 0.5 * self.system.pendulum_moment() * angle_vel**2
         )
         energy_control_action = -self.gain * np.sign(
             angle_vel * energy_total
-        ) + friction_coeff * self.system.pendulum_moment(
-            mass, length
-        ) * angle_vel * np.abs(
+        ) + friction_coeff * self.system.pendulum_moment() * angle_vel * np.abs(
             angle_vel
         )
 
@@ -202,13 +200,11 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
 
         energy_total = (
             mass * grav_const * length * (np.cos(angle) - 1) / 2
-            + 0.5 * self.system.pendulum_moment(mass, length) * angle_vel**2
+            + 0.5 * self.system.pendulum_moment() * angle_vel**2
         )
         energy_control_action = -self.gain * np.sign(
             angle_vel * energy_total
-        ) + self.friction_coeff_est * self.system.pendulum_moment(
-            mass, length
-        ) * angle_vel * np.abs(
+        ) + self.friction_coeff_est * self.system.pendulum_moment() * angle_vel * np.abs(
             angle_vel
         )
 
@@ -278,7 +274,7 @@ class InvertedPendulumBackstepping(Policy):
 
         energy_total = (
             mass * grav_const * length * (np.cos(angle) - 1) / 2
-            + 0.5 * self.system.pendulum_moment(mass, length) * angle_vel**2
+            + 0.5 * self.system.pendulum_moment() * angle_vel**2
         )
         energy_control_action = -self.energy_gain * np.sign(angle_vel * energy_total)
         backstepping_action = torque - self.backstepping_gain * (
@@ -289,7 +285,7 @@ class InvertedPendulumBackstepping(Policy):
         action = hard_switch(
             signal1=backstepping_action,
             signal2=action_pd,
-            condition=(np.cos(angle) - 1) ** 2 + angle_vel**2 >= 0.01,
+            condition=(np.cos(angle) - 1) ** 2 + angle_vel**2 >= self.switch_loc,
         )
 
         return np.array(
