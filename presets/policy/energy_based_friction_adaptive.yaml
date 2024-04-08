@@ -8,3 +8,4 @@ sampling_time: $ common.sampling_time
 gain_adaptive: 0.003
 pd_coeffs: = [0.6, 0.2]
 switch_loc: = np.cos(np.pi / 10)
+system: ~ system
