@@ -1,2 +1,10 @@
 _target_: src.system.InvertedPendulumWithMotor
 
+## Redefine the parameters of the pendulum
+# system_parameters_init: 
+#   mass: 0.127
+#   grav_const: 9.81
+#   length: 0.337
+#   tau_motor: 0.05
+#   m_motor: 0.05
+#   r_motor: 0.04
