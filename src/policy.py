@@ -241,7 +241,7 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
 class InvertedPendulumBackstepping(Policy):
 
     def __init__(
-        self, energy_gain, gain, switch_loc, pd_coeffs, action_min, action_max
+        self, energy_gain, final_gain, switch_loc, pd_coeffs, action_min, action_max
     ):
 
         super().__init__()
@@ -250,7 +250,7 @@ class InvertedPendulumBackstepping(Policy):
         self.action_max = action_max
         self.switch_loc = switch_loc
         self.energy_gain = energy_gain
-        self.gain = gain
+        self.final_gain = final_gain
         self.pd_coeffs = pd_coeffs
 
     def get_action(self, observation: np.ndarray) -> np.ndarray:
@@ -273,7 +273,9 @@ class InvertedPendulumBackstepping(Policy):
             * angle_vel**2
         )
         energy_control_action = -self.energy_gain * np.sign(angle_vel * energy_total)
-        backstepping_action = torque - self.gain * (torque - energy_control_action)
+        backstepping_action = torque - self.final_gain * (
+            torque - energy_control_action
+        )
         action_pd = -self.pd_coeffs[0] * np.sin(angle) - self.pd_coeffs[1] * angle_vel
 
         action = hard_switch(
