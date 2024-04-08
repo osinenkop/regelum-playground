@@ -21,13 +21,13 @@ Execute the PD regulator using the following command in your terminal:
 python run.py policy=pd system=inv_pendulum --interactive --fps=10
 ```    
 
-But it doesn't work with default action bounds `[-3, 3]`.
+But it doesn't work with default action bounds `[-0.1, 0.1]`.
 
 To run the PD regulator with custom action bounds:
 
 
 ```shell
-python run.py policy=pd system=inv_pendulum policy.action_min=-20 policy.action_max=20 --interactive --fps=10
+python run.py policy=pd system=inv_pendulum policy.action_min=-2 policy.action_max=2 --interactive --fps=10
 ```  
 
 ### Step 3: Run Energy-Based Controller on the inverted pendulum without friction
