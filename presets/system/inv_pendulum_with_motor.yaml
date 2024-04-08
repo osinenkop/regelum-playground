@@ -5,6 +5,6 @@ _target_: src.system.InvertedPendulumWithMotor
 #   mass: 0.127
 #   grav_const: 9.81
 #   length: 0.337
-#   tau_motor: 0.05
-#   m_motor: 0.05
-#   r_motor: 0.04
+#   motor_time_const: 0.05
+#   motor_mass: 0.05
+#   motor_radius: 0.04
