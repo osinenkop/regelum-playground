@@ -274,7 +274,7 @@ class InvertedPendulumBackstepping(Policy):
 
         energy_total = (
             mass * grav_const * length * (np.cos(angle) - 1) / 2
-            + 0.5 * self.system.pendulum_moment() * angle_vel**2
+            + 0.5 * self.system.pendulum_moment_inertia() * angle_vel**2
         )
         energy_control_action = -self.energy_gain * np.sign(angle_vel * energy_total)
         backstepping_action = torque - self.backstepping_gain * (
