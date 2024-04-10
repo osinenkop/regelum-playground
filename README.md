@@ -1,9 +1,9 @@
 ## Overview 
 
-This is a playground based on [regelum-control](https://regelum.aidynamic.io/systems/inv_pendulum/), a framework for control and reinforcement learning.
+This is a playground based on [regelum-control](https://regelum.aidynamic.io), a framework for control and reinforcement learning.
 It showcases various systems and controllers.
 If you are working in Windows, it is recommended to use WSL and, possibly, a display server like Xming to properly output graphics from WSL.
-Note, in [regelum-control](https://regelum.aidynamic.io/systems/inv_pendulum/), we refer to a controller by the term "policy", whence those two are interchangeable.
+Note, in regelum, we refer to a controller by the term "policy", whence those two are interchangeable.
 
 ## Getting started
 
