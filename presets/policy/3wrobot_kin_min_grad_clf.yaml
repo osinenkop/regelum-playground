@@ -1,0 +1,5 @@
+_target_: src.policy.ThreeWheeledRobotKinematicMinGradCLF
+
+optimizer_config: 
+  _target_: regelum.CasadiOptimizerConfig
+action_bounds: = np.array([[-25, 25], [-5, 5]])

@@ -8,6 +8,7 @@ from src.system import (
     InvertedPendulumWithMotor,
 )
 from typing import Union
+from regelum.utils import rg
 
 
 def soft_switch(signal1, signal2, gate, loc=np.cos(np.pi / 4), scale=10):
@@ -318,3 +319,52 @@ class InvertedPendulumWithMotorPD(Policy):
 
         action = -self.pd_coeffs[0] * angle - self.pd_coeffs[1] * angle_vel
         return np.array([[np.clip(action, self.action_min, self.action_max)]])
+
+
+class ThreeWheeledRobotKinematicMinGradCLF(Policy):
+
+    def __init__(self, optimizer_config, action_bounds):
+        super().__init__(optimizer_config=optimizer_config)
+        self.action_bounds = action_bounds
+        self.instantiate_optimization_procedure()
+
+    def instantiate_optimization_procedure(self):
+        self.x_cor_var = self.create_variable(1, name="x_cor", is_constant=True)
+        self.y_cor_var = self.create_variable(1, name="y_cor", is_constant=True)
+        self.angle_var = self.create_variable(1, name="angle", is_constant=True)
+        self.vel_var = self.create_variable(
+            1, name="vel", is_constant=False, like=np.array([[0]])
+        )
+        self.angle_vel_var = self.create_variable(
+            1, name="angle_vel", is_constant=False, like=np.array([[0]])
+        )
+        self.register_bounds(self.vel_var, np.array(self.action_bounds[None, 0]))
+        self.register_bounds(self.angle_vel_var, np.array(self.action_bounds[None, 1]))
+
+        self.register_objective(
+            self.objective_func,
+            variables=[
+                self.x_cor_var,
+                self.y_cor_var,
+                self.angle_var,
+                self.vel_var,
+                self.angle_vel_var,
+            ],
+        )
+
+    def objective_func(self, x_cor, y_cor, angle, vel, angle_vel):
+        x_dot = vel * rg.cos(angle)
+        y_dot = vel * rg.sin(angle)
+
+        return x_cor * x_dot + y_cor * y_dot + angle * angle_vel
+
+    def get_action(self, observation: np.ndarray):
+        x_cor = observation[0, 0]
+        y_cor = observation[0, 1]
+        angle = observation[0, 2]
+
+        action = self.optimize(x_cor=x_cor, y_cor=y_cor, angle=angle)
+        angle_vel = np.array(action["angle_vel"])[0, 0]
+        vel = np.array(action["vel"])[0, 0]
+
+        return np.array([[vel, angle_vel]])
