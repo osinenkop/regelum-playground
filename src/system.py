@@ -4,23 +4,10 @@ from regelum.system import (
     ThreeWheeledRobotKinematic,
     ThreeWheeledRobotDynamic,
 )
-from regelum import callback
-from regelum.animation import DefaultAnimation
-from .animation import MyThreeWheeledRobotAnimation
 
-
-MyThreeWheeledRobotKinematic = callback.detach(ThreeWheeledRobotKinematic)
-MyThreeWheeledRobotKinematic = DefaultAnimation.attach(MyThreeWheeledRobotKinematic)
-MyThreeWheeledRobotKinematic = MyThreeWheeledRobotAnimation.attach(
-    MyThreeWheeledRobotKinematic
-)
-
-MyThreeWheeledRobotDynamic = callback.detach(ThreeWheeledRobotDynamic)
-MyThreeWheeledRobotDynamic = DefaultAnimation.attach(MyThreeWheeledRobotDynamic)
-MyThreeWheeledRobotDynamic = MyThreeWheeledRobotAnimation.attach(
-    MyThreeWheeledRobotDynamic
-)
-
+# Classes whose corresponding animators were customized in `animation.py`
+from .animation import MyThreeWheeledRobotKinematic
+from .animation import MyThreeWheeledRobotDynamic
 
 class MyThreeWheeledRobotDynamic(MyThreeWheeledRobotDynamic):
     _parameters = {"m": 1, "I": 0.005}
