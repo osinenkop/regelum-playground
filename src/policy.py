@@ -364,7 +364,7 @@ class ThreeWheeledRobotKinematicMinGradCLF(Policy):
         angle = observation[0, 2]
 
         action = self.optimize(x_cor=x_cor, y_cor=y_cor, angle=angle)
-        angle_vel = np.array(action["angle_vel"])[0, 0]
-        vel = np.array(action["vel"])[0, 0]
+        angle_vel = float(action["angle_vel"][0, 0])
+        vel = float(action["vel"][0, 0])
 
         return np.array([[vel, angle_vel]])
