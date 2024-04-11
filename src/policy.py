@@ -356,7 +356,19 @@ class ThreeWheeledRobotKinematicMinGradCLF(Policy):
         x_dot = vel * rg.cos(angle)
         y_dot = vel * rg.sin(angle)
 
-        return x_cor * x_dot + y_cor * y_dot + angle * angle_vel
+        return (
+            x_cor * x_dot
+            + y_cor * y_dot
+            + (angle - np.arctan(y_cor / (rg.sign(x_cor) * 0.01 + x_cor)))
+            * (angle_vel - (y_dot * x_cor - x_dot * y_cor) / (x_cor**2 + y_cor**2))
+        )
+        # else:
+        #     return (
+        #         x_cor * x_dot
+        #         + y_cor * y_dot
+        #         + angle
+        #         * (angle_vel - (y_dot * x_cor - x_dot * y_cor) / (x_cor**2 + y_cor**2))
+        #     )
 
     def get_action(self, observation: np.ndarray):
         x_cor = observation[0, 0]
@@ -368,3 +380,61 @@ class ThreeWheeledRobotKinematicMinGradCLF(Policy):
         vel = float(action["vel"][0, 0])
 
         return np.array([[vel, angle_vel]])
+
+
+class ThreeWheeledRobotDynamicMinGradCLF(Policy):
+
+    def __init__(self, optimizer_config, action_bounds):
+        super().__init__(optimizer_config=optimizer_config)
+        self.action_bounds = action_bounds
+        self.instantiate_optimization_procedure()
+
+    def instantiate_optimization_procedure(self):
+        self.x_cor_var = self.create_variable(1, name="x_cor", is_constant=True)
+        self.y_cor_var = self.create_variable(1, name="y_cor", is_constant=True)
+        self.angle_var = self.create_variable(1, name="angle", is_constant=True)
+        self.vel_var = self.create_variable(
+            1, name="vel", is_constant=False, like=np.array([[0]])
+        )
+        self.angle_vel_var = self.create_variable(
+            1, name="angle_vel", is_constant=False, like=np.array([[0]])
+        )
+        self.register_bounds(self.vel_var, np.array(self.action_bounds[None, 0]))
+        self.register_bounds(self.angle_vel_var, np.array(self.action_bounds[None, 1]))
+
+        self.register_objective(
+            self.objective_func,
+            variables=[
+                self.x_cor_var,
+                self.y_cor_var,
+                self.angle_var,
+                self.vel_var,
+                self.angle_vel_var,
+            ],
+        )
+
+    def objective_func(self, x_cor, y_cor, angle, vel, angle_vel):
+        x_dot = vel * rg.cos(angle)
+        y_dot = vel * rg.sin(angle)
+
+        return (
+            x_cor * x_dot
+            + y_cor * y_dot
+            + (angle - np.arctan(y_cor / (rg.sign(x_cor) * 0.01 + x_cor)))
+            * (angle_vel - (y_dot * x_cor - x_dot * y_cor) / (x_cor**2 + y_cor**2))
+        )
+
+    def get_action(self, observation: np.ndarray):
+        x_cor = observation[0, 0]
+        y_cor = observation[0, 1]
+        angle = observation[0, 2]
+
+        action = self.optimize(x_cor=x_cor, y_cor=y_cor, angle=angle)
+        angle_vel = float(action["angle_vel"][0, 0])
+        vel = float(action["vel"][0, 0])
+        gain = 1
+
+        return -gain * (
+            np.array([[observation[0, 3], observation[0, 4]]])
+            - np.array([[vel, angle_vel]])
+        )

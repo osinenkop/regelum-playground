@@ -1,1 +1,5 @@
-_target_: regelum.system.ThreeWheeledRobotDynamic
+_target_: src.system.MyThreeWheeledRobotDynamic
+
+
+# Redefine the parameters of the pendulum
+# system_parameters_init: = dict(m=1, J=0.005)

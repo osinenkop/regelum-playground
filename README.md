@@ -85,6 +85,20 @@ python run.py policy=3wrobot_kin_dissasembled system=3wrobot_kin --interactive -
 python run.py policy=3wrobot_kin_dissasembled system=3wrobot_kin --interactive --fps=10
 ```  
 
+### 3wrobot_kin 
+
+```shell
+python run.py policy=3wrobot_kin_min_grad_clf initial_conditions=3wrobot_kin system=3wrobot_kin common.sampling_time=0.01 --interactive --fps=10 
+```  
+
+### 3wrobot_dyn
+
+```shell
+python run.py policy=3wrobot_dyn_min_grad_clf initial_conditions=3wrobot_dyn system=3wrobot_dyn common.sampling_time=0.01 --interactive --fps=10 
+```  
+
+
+
 > **Note:**
 >
 > For the `--fps` parameter, you can select any suitable value to ensure a smooth experience (e.g., `--fps=2`, `--fps=10`, `--fps=20`, etc.).

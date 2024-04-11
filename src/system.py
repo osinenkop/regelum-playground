@@ -1,5 +1,29 @@
 from regelum.utils import rg
-from regelum.system import InvertedPendulum
+from regelum.system import (
+    InvertedPendulum,
+    ThreeWheeledRobotKinematic,
+    ThreeWheeledRobotDynamic,
+)
+from regelum import callback
+from regelum.animation import DefaultAnimation
+from .animation import MyThreeWheeledRobotAnimation
+
+
+MyThreeWheeledRobotKinematic = callback.detach(ThreeWheeledRobotKinematic)
+MyThreeWheeledRobotKinematic = DefaultAnimation.attach(MyThreeWheeledRobotKinematic)
+MyThreeWheeledRobotKinematic = MyThreeWheeledRobotAnimation.attach(
+    MyThreeWheeledRobotKinematic
+)
+
+MyThreeWheeledRobotDynamic = callback.detach(ThreeWheeledRobotDynamic)
+MyThreeWheeledRobotDynamic = DefaultAnimation.attach(MyThreeWheeledRobotDynamic)
+MyThreeWheeledRobotDynamic = MyThreeWheeledRobotAnimation.attach(
+    MyThreeWheeledRobotDynamic
+)
+
+
+class MyThreeWheeledRobotDynamic(MyThreeWheeledRobotDynamic):
+    _parameters = {"m": 1, "I": 0.005}
 
 
 class InvertedPendulum(InvertedPendulum):
@@ -55,7 +79,9 @@ class InvertedPendulumWithFriction(InvertedPendulum):
         Dstate[0] = state[1]
         Dstate[1] = (
             grav_const * mass * length * rg.sin(state[0]) / 2 + inputs[0]
-        ) / self.pendulum_moment_inertia() - friction_coeff * state[1] ** 2 * rg.sign(state[1])
+        ) / self.pendulum_moment_inertia() - friction_coeff * state[1] ** 2 * rg.sign(
+            state[1]
+        )
 
         return Dstate
 
@@ -84,7 +110,9 @@ class InvertedPendulumWithMotor(InvertedPendulum):
     _action_bounds = [[-1.0, 1.0]]
 
     def motor_moment(self):
-        return self._parameters["motor_mass"] * self._parameters["motor_radius"] ** 2 / 2
+        return (
+            self._parameters["motor_mass"] * self._parameters["motor_radius"] ** 2 / 2
+        )
 
     def _compute_state_dynamics(self, time, state, inputs):
         Dstate = rg.zeros(

@@ -1,4 +1,4 @@
-_target_: src.policy.ThreeWheeledRobotKinematicMinGradCLF
+_target_: src.policy.ThreeWheeledRobotDynamicMinGradCLF
 
 optimizer_config: 
   _target_: regelum.CasadiOptimizerConfig
