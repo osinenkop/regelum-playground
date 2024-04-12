@@ -3,3 +3,4 @@ _target_: src.policy.ThreeWheeledRobotDynamicMinGradCLF
 optimizer_config: 
   _target_: regelum.CasadiOptimizerConfig
 action_bounds: = np.array([[-1, 1], [-2.84, 2.84]])
+gain: 1

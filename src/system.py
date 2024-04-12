@@ -4,13 +4,34 @@ from regelum.system import (
     ThreeWheeledRobotKinematic,
     ThreeWheeledRobotDynamic,
 )
+from regelum.animation import DefaultAnimation
+from .animation import ThreeWheeledRobotAnimationWithNewLims
+from regelum.callback import detach
 
-# Classes whose corresponding animators were customized in `animation.py`
-from .animation import MyThreeWheeledRobotKinematic
-from .animation import MyThreeWheeledRobotDynamic
 
-class MyThreeWheeledRobotDynamic(MyThreeWheeledRobotDynamic):
+# In the following 2 classes we
+# - detach all original animations from class
+# - attach DefaultAnimation of action and state plots
+# - attach new animation with new lims from [-1.3, 1.3]
+#
+# This provides us the animation with new lims for 3wrobot
+#
+# See the docs for additional details:
+# https://regelum.aidynamic.io/tutorials/animations/
+
+
+@ThreeWheeledRobotAnimationWithNewLims.attach
+@DefaultAnimation.attach
+@detach
+class MyThreeWheeledRobotDynamic(ThreeWheeledRobotDynamic):
     _parameters = {"m": 1, "I": 0.005}
+
+
+@ThreeWheeledRobotAnimationWithNewLims.attach
+@DefaultAnimation.attach
+@detach
+class MyThreeWheeledRobotKinematic(ThreeWheeledRobotKinematic):
+    action_bounds = [[-1, 1], [-2.84, 2.84]]
 
 
 class InvertedPendulum(InvertedPendulum):
