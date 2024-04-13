@@ -1,4 +1,13 @@
-## Overview 
+{#content}
+
+- [About](#about)
+- [Folder structure](#Folder-structure)
+- [Working on publication draft](#Working-on-publication-draft)
+  * [Internal review](#Internal-review)
+  * [Bibliography](#Bibliography)
+- [Clean code](#Clean-code) 
+
+## {#about} About [To top](#content)
 
 This is a playground based on [regelum-control](https://regelum.aidynamic.io), a framework for control and reinforcement learning.
 It showcases various systems and controllers.
