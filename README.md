@@ -1,18 +1,32 @@
-# Content
-- [About](#about)
-- [Getting started](#getting-started)
-- [Ready examples](#ready-examples)
-  * [Proportional-derivative (PD) controller for inverted pendulum](#pd-inv-pendul)
+<!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
 
+- [About ](#about)
+- [Getting started](#getting-started)
+   * [Installation requirements](#installation-requirements)
+- [Ready examples](#ready-examples)
+   * [Proportional-derivative (PD) controller for inverted pendulum](#proportional-derivative-pd-controller-for-inverted-pendulum)
+   * [Energy-based controller for inverted pendulum](#energy-based-controller-for-inverted-pendulum)
+   * [Energy-based controller for inverted pendulum with joint friction](#energy-based-controller-for-inverted-pendulum-with-joint-friction)
+   * [Energy-based controller with friction compenstation for inverted pendulum with joint friction](#energy-based-controller-with-friction-compenstation-for-inverted-pendulum-with-joint-friction)
+   * [Adaptive energ-based controller for inverted pendulum with joint friction](#adaptive-energ-based-controller-for-inverted-pendulum-with-joint-friction)
+   * [Backstepping controller for inverted pendulum with motor dynamics](#backstepping-controller-for-inverted-pendulum-with-motor-dynamics)
+   * [PD controller for inverted pendulum with motor dynamics](#pd-controller-for-inverted-pendulum-with-motor-dynamics)
+   * [Lyapunov-based controller for kinematic three-wheeled robot](#lyapunov-based-controller-for-kinematic-three-wheeled-robot)
+   * [Backstepping controller for dynamic three-wheeled robot](#backstepping-controller-for-dynamic-three-wheeled-robot)
+- [Repo structure](#repo-structure)
+
+<!-- TOC end -->
+
+<!-- TOC --><a name="about"></a>
 ## About 
-[To top](#content)
 
 This is a playground based on [regelum-control](https://regelum.aidynamic.io), a framework for control and reinforcement learning.
 It showcases various dynamical systems and controllers (also called policies).
 
+<!-- TOC --><a name="getting-started"></a>
 ## Getting started
-[To top](#content)
 
+<!-- TOC --><a name="installation-requirements"></a>
 ### Installation requirements
 
 If you are working in Windows, it is recommended to use WSL and, possibly, a display server like Xming to properly output graphics from WSL.
@@ -30,20 +44,20 @@ Then, install necessary packages:
 ```shell
 pip install -r requirements.txt
 ```
+<!-- TOC --><a name="ready-examples"></a>
 ## Ready examples
-[To top](#content)
 
 Below are examples with respective terminal run commands. 
 
+<!-- TOC --><a name="proportional-derivative-pd-controller-for-inverted-pendulum"></a>
 ### Proportional-derivative (PD) controller for inverted pendulum
-[To top](#content)
-<a name="pd-inv-pendul"></a>
 
 ```shell
 python run.py policy=pd system=inv_pendulum --interactive --fps=10
 ```    
 
-Observe it doesn't work with default action bounds.
+Observe it doesn't work with the default action bounds.
+Further, we will see how the energy-based controller does the job.
 
 To run the PD controller with custom action bounds:
 
@@ -51,20 +65,25 @@ To run the PD controller with custom action bounds:
 python run.py policy=pd system=inv_pendulum policy.action_min=-2 policy.action_max=2 --interactive --fps=10
 ```  
 
+Making the bounds sufficiently large will help the PD controller to upswing and upright hold the pendulum.
+
+<!-- TOC --><a name="energy-based-controller-for-inverted-pendulum"></a>
 ### Energy-based controller for inverted pendulum
 
 ```shell
 python run.py policy=energy_based system=inv_pendulum --interactive --fps=10
 ```  
 
+<!-- TOC --><a name="energy-based-controller-for-inverted-pendulum-with-joint-friction"></a>
 ### Energy-based controller for inverted pendulum with joint friction
 
 ```shell
 python run.py policy=energy_based system=inv_pendulum_with_friction --interactive --fps=10
 ```  
 
-Observe doesn't work.
+Observe it doesn't work due to ignorance of friction.
 
+<!-- TOC --><a name="energy-based-controller-with-friction-compenstation-for-inverted-pendulum-with-joint-friction"></a>
 ### Energy-based controller with friction compenstation for inverted pendulum with joint friction
 
 ```shell
@@ -73,56 +92,51 @@ python run.py policy=energy_based_friction_compensation system=inv_pendulum_with
 
 This works better than the last one.
 
+<!-- TOC --><a name="adaptive-energ-based-controller-for-inverted-pendulum-with-joint-friction"></a>
 ### Adaptive energ-based controller for inverted pendulum with joint friction
 
 ```shell
 python run.py policy=energy_based_friction_adaptive system=inv_pendulum_with_friction --interactive --fps=10
 ```  
 
-Should also work.
+This should also work.
 
+<!-- TOC --><a name="backstepping-controller-for-inverted-pendulum-with-motor-dynamics"></a>
 ### Backstepping controller for inverted pendulum with motor dynamics
+
+This showcases the use of backstepping.
 
 ```shell
 python run.py policy=backstepping system=inv_pendulum_with_motor --interactive --fps=10 
 ``` 
 
+<!-- TOC --><a name="pd-controller-for-inverted-pendulum-with-motor-dynamics"></a>
 ### PD controller for inverted pendulum with motor dynamics
 
 ```shell
 python run.py policy=motor_pd system=inv_pendulum_with_motor --interactive --fps=10 
 ```  
+Notice for it fails to do the job.
 
+<!-- TOC --><a name="lyapunov-based-controller-for-kinematic-three-wheeled-robot"></a>
 ### Lyapunov-based controller for kinematic three-wheeled robot
-
-```shell
-python run.py policy=3wrobot_kin_dissasembled system=3wrobot_kin --interactive --fps=10
-```  
-
-### Backstepping controller for dynamic three-wheeled robot
-
-```shell
-python run.py policy=3wrobot_kin_dissasembled system=3wrobot_kin --interactive --fps=10
-```  
-
-### 3wrobot_kin 
 
 ```shell
 python run.py policy=3wrobot_kin_min_grad_clf initial_conditions=3wrobot_kin system=3wrobot_kin common.sampling_time=0.01 --interactive --fps=10 
 ```  
 
-### 3wrobot_dyn
+<!-- TOC --><a name="backstepping-controller-for-dynamic-three-wheeled-robot"></a>
+### Backstepping controller for dynamic three-wheeled robot
 
 ```shell
 python run.py policy=3wrobot_dyn_min_grad_clf initial_conditions=3wrobot_dyn system=3wrobot_dyn common.sampling_time=0.01 --interactive --fps=10 
 ```  
 
-
-
 > **Note:**
 >
 > For the `--fps` parameter, you can select any suitable value to ensure a smooth experience (e.g., `--fps=2`, `--fps=10`, `--fps=20`, etc.).
 
+<!-- TOC --><a name="repo-structure"></a>
 ## Repo structure
 
 - [`run.py`](./run.py): The main executable script.
