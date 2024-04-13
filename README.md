@@ -1,34 +1,43 @@
 # Content
-
 - [About](#about)
 - [Getting started](#getting-started)
-- [Working on publication draft](#Working-on-publication-draft)
-  * [Internal review](#Internal-review)
-  * [Bibliography](#Bibliography)
-- [Clean code](#Clean-code) 
+- [Ready examples](#ready-examples)
+  * [Proportional-derivative (PD) controller for inverted pendulum](#pd-inv-pendul)
 
 ## About 
 [To top](#content)
 
 This is a playground based on [regelum-control](https://regelum.aidynamic.io), a framework for control and reinforcement learning.
-It showcases various systems and controllers.
-If you are working in Windows, it is recommended to use WSL and, possibly, a display server like Xming to properly output graphics from WSL.
-Note, in regelum, we refer to a controller by the term "policy", whence those two are interchangeable.
+It showcases various dynamical systems and controllers (also called policies).
 
 ## Getting started
 [To top](#content)
 
-### Install requirements
+### Installation requirements
 
+If you are working in Windows, it is recommended to use WSL and, possibly, a display server like Xming to properly output graphics from WSL.
 Before installing the [`requirements.txt`](./requirements.txt), it is recommended to create a virtual environment for your project, say, `pyenv` or `virtualenv`. The instructions on these are standard and may be found on the web.
+For instance, in case of `virtualenv`, install, create a virtual environment, e.g., `rgenv` and then activate it, being in the folder into which you cloned the repo:
+
+```shell
+pip install virtualenv
+python -m venv rgenv
+source rgenv/bin/activate
+```
+
+Then, install necessary packages:
 
 ```shell
 pip install -r requirements.txt
 ```
+## Ready examples
+[To top](#content)
 
 Below are examples with respective terminal run commands. 
 
 ### Proportional-derivative (PD) controller for inverted pendulum
+[To top](#content)
+<a name="pd-inv-pendul"></a>
 
 ```shell
 python run.py policy=pd system=inv_pendulum --interactive --fps=10
