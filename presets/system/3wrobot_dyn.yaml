@@ -1,5 +1,12 @@
 _target_: src.system.MyThreeWheeledRobotDynamic
 
+# To adjust system parameters, uncomment the code below
 
-# Redefine the parameters of the pendulum
 # system_parameters_init: = dict(m=1, J=0.005)
+
+# The logic behind this is as follows. The case system class constructor contains a code
+#
+#   if system_parameters_init is not None:
+#     _pamateres = system_parameters_init
+#
+# By assigning to `system_parameters_init` in a `yaml` config, we feed the respective paramters to the system

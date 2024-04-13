@@ -80,7 +80,7 @@ class InvertedPendulumEnergyBased(Policy):
 
         energy_total = (
             mass * grav_const * length * (np.cos(angle) - 1) / 2
-            + 0.5 * self.system.pendulum_moment_inertia() * angle_vel**2
+            + 1/2 * self.system.pendulum_moment_inertia() * angle_vel**2
         )
         energy_control_action = -self.gain * np.sign(angle_vel * energy_total)
 
@@ -136,7 +136,7 @@ class InvPendulumEnergyBasedFrictionCompensation(Policy):
         angle_vel = observation[0, 1]
         energy_total = (
             mass * grav_const * length * (np.cos(angle) - 1) / 2
-            + 0.5 * self.system.pendulum_moment_inertia() * angle_vel**2
+            + 1/2 * self.system.pendulum_moment_inertia() * angle_vel**2
         )
         energy_control_action = -self.gain * np.sign(
             angle_vel * energy_total
@@ -202,7 +202,7 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
 
         energy_total = (
             mass * grav_const * length * (np.cos(angle) - 1) / 2
-            + 0.5 * self.system.pendulum_moment_inertia() * angle_vel**2
+            + 1/2 * self.system.pendulum_moment_inertia() * angle_vel**2
         )
         energy_control_action = -self.gain * np.sign(
             angle_vel * energy_total
@@ -332,8 +332,26 @@ class ThreeWheeledRobotKinematicMinGradCLF(Policy):
     ):
         super().__init__(optimizer_config=optimizer_config)
         self.action_bounds = action_bounds
+        # An epsilon for numerical stability
         self.eps = eps
         self.instantiate_optimization_procedure()
+
+    def derivative_of_three_wheeled_robot_kin_lyapunov_function(
+        self, x_coord, y_coord, angle, vel, angle_vel
+    ):
+        x_derivative = vel * rg.cos(angle)
+        y_derivative = vel * rg.sin(angle)
+
+        return (
+            x_coord * x_derivative
+            + y_coord * y_derivative
+            + (angle - np.arctan(y_coord / (rg.sign(x_coord) * self.eps + x_coord)))
+            * (
+                angle_vel
+                - (y_derivative * x_coord - x_derivative * y_coord)
+                / (x_coord**2 + y_coord**2)
+            )
+        )
 
     def instantiate_optimization_procedure(self):
         self.x_coord_var = self.create_variable(1, name="x_coord", is_constant=True)
@@ -359,23 +377,6 @@ class ThreeWheeledRobotKinematicMinGradCLF(Policy):
             ],
         )
 
-    def derivative_of_three_wheeled_robot_kin_lyapunov_function(
-        self, x_coord, y_coord, angle, vel, angle_vel
-    ):
-        x_derivative = vel * rg.cos(angle)
-        y_derivative = vel * rg.sin(angle)
-
-        return (
-            x_coord * x_derivative
-            + y_coord * y_derivative
-            + (angle - np.arctan(y_coord / (rg.sign(x_coord) * self.eps + x_coord)))
-            * (
-                angle_vel
-                - (y_derivative * x_coord - x_derivative * y_coord)
-                / (x_coord**2 + y_coord**2)
-            )
-        )
-
     def get_action(self, observation: np.ndarray):
         x_coord = observation[0, 0]
         y_coord = observation[0, 1]
@@ -384,7 +385,8 @@ class ThreeWheeledRobotKinematicMinGradCLF(Policy):
         optimized_vel_and_angle_vel = self.optimize(
             x_coord=x_coord, y_coord=y_coord, angle=angle
         )
-        # the result of optimization is a dict of casadi tensors so let us convert them to float
+
+        # The result of optimization is a dict of casadi tensors, so we convert them to float
         angle_vel = float(optimized_vel_and_angle_vel["angle_vel"][0, 0])
         vel = float(optimized_vel_and_angle_vel["vel"][0, 0])
 

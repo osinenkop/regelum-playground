@@ -9,33 +9,33 @@ from .animation import ThreeWheeledRobotAnimationWithNewLims
 from regelum.callback import detach
 
 
-# In the following 2 classes we
-# - detach all original animations from class
-# - attach DefaultAnimation of action and state plots
-# - attach new animation with new lims from [-1.3, 1.3]
+# In the following two classes we want to alter their respective animation callbacks, so we:
+# - detach the default animations
+# - attach `DefaultAnimation` of the action and state plots
+# - attach a new animation with new x- and y-limtis of [-1.3, 1.3]
 #
-# This provides us the animation with new lims for 3wrobot
-#
-# See the docs for additional details:
-# https://regelum.aidynamic.io/tutorials/animations/
+# To learn more on customizing animations in regelum, go to https://regelum.aidynamic.io/tutorials/animations/
 
 
 @ThreeWheeledRobotAnimationWithNewLims.attach
 @DefaultAnimation.attach
 @detach
 class MyThreeWheeledRobotDynamic(ThreeWheeledRobotDynamic):
+    """The parameters correspond roughly to those of Robotis TurtleBot3."""
     _parameters = {"m": 1, "I": 0.005}
+    action_bounds = [[-1, 1], [-1, 1]]
 
 
 @ThreeWheeledRobotAnimationWithNewLims.attach
 @DefaultAnimation.attach
 @detach
 class MyThreeWheeledRobotKinematic(ThreeWheeledRobotKinematic):
-    action_bounds = [[-1, 1], [-2.84, 2.84]]
+    """The parameters correspond to those of Robotis TurtleBot3."""
+    action_bounds = [[-0.22, 0.22], [-2.84, 2.84]]
 
 
 class InvertedPendulum(InvertedPendulum):
-    """Parameters of this system roughly resemble those of a Quanser test stand Rotary Inverted Pendulum."""
+    """The parameters of this system roughly resemble those of a Quanser Rotary Inverted Pendulum."""
 
     _parameters = {"mass": 0.127, "grav_const": 9.81, "length": 0.337}
 
@@ -62,7 +62,7 @@ class InvertedPendulum(InvertedPendulum):
 
 
 class InvertedPendulumWithFriction(InvertedPendulum):
-    """Parameters of this system roughly resemble those of a Quanser test stand Rotary Inverted Pendulum."""
+    """The parameters of this system roughly resemble those of a Quanser Rotary Inverted Pendulum."""
 
     _parameters = {
         "mass": 0.127,
@@ -95,7 +95,7 @@ class InvertedPendulumWithFriction(InvertedPendulum):
 
 
 class InvertedPendulumWithMotor(InvertedPendulum):
-    """Parameters of this system roughly resemble those of a Quanser test stand Rotary Inverted Pendulum."""
+    """The parameters of this system roughly resemble those of a Quanser Rotary Inverted Pendulum."""
 
     _parameters = {
         "mass": 0.127,

@@ -1,8 +1,16 @@
 _target_: src.system.InvertedPendulumWithFriction
 
-## Redefine the parameters of the pendulum
+# To adjust system parameters, uncomment the code below
+
 # system_parameters_init: 
 #   mass: 0.127
 #   grav_const: 9.81
 #   length: 0.337
 #   friction_coeff: 0.01
+
+# The logic behind this is as follows. The case system class constructor contains a code
+#
+#   if system_parameters_init is not None:
+#     _pamateres = system_parameters_init
+#
+# By assigning to `system_parameters_init` in a `yaml` config, we feed the respective paramters to the system
