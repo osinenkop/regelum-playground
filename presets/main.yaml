@@ -3,7 +3,7 @@ defaults:
   - system: inv_pendulum_with_friction
   - simulator: casadi
   - scenario: scenario
-  - common: common
+  - common: ${system}
   - initial_conditions: ${system}
 
 callbacks:

@@ -1,9 +1,7 @@
 _target_: regelum.simulator.CasADi
 
 system: ~ system
-# state_init: = np.array([[np.pi / 9, 0, 0.]])
-
 state_init: $ initial_conditions.state_init
-time_final: 20
+time_final: $ common.time_final
 max_step: $ common.sampling_time
 
