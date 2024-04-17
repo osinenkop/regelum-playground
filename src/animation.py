@@ -21,7 +21,7 @@ class SpotObjectiveAnimation(Animation): # inherit from this
         self.ax.add_patch(self.circle)
 
     def is_target(self, obj, method, output, triggers):
-        return isinstance(obj, SpotObjective) and method == '__init__'
+        return isinstance(obj, SpotObjective) and method == '__call__'
 
     def on_function_call(self, obj, method, output):
-        self.circle.set(center=(obj.x, obj.y), radius=obj.r)
+        self.circle.set(center=(obj.x_center, obj.y_center), radius=obj.r)
