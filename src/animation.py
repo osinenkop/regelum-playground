@@ -13,8 +13,8 @@ class ThreeWheeledRobotAnimationWithNewLims(ThreeWheeledRobotAnimation):
         super().setup()
 
     def lim(self, *args, **kwargs):
-        self.ax.set_xlim(-1.3, 1.3)
-        self.ax.set_ylim(-1.3, 1.3)
+        self.ax.set_xlim(-1.5, 1.5)
+        self.ax.set_ylim(-1.5, 1.5)
 
 
 class ThreeWheeledRobotAnimationWithSpot(ThreeWheeledRobotAnimation):

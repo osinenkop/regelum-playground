@@ -130,7 +130,34 @@ python run.py policy=3wrobot_kin_min_grad_clf initial_conditions=3wrobot_kin sys
 
 ```shell
 python run.py policy=3wrobot_dyn_min_grad_clf initial_conditions=3wrobot_dyn system=3wrobot_dyn common.sampling_time=0.01 --interactive --fps=10 
-```  
+```
+
+### MPC three-wheeled robot
+
+#### With spot
+
+```shell
+python run.py \
+  initial_conditions=3wrobot_kin_with_spot \
+  system=3wrobot_kin_with_spot \
+  scenario=mpc_scenario \
+  scenario.running_objective.spot_gain=100 \
+  scenario.prediction_horizon=3 \
+  --interactive \
+  --fps=10
+```
+
+#### Without spot
+```shell
+python run.py \
+  initial_conditions=3wrobot_kin_with_spot \
+  system=3wrobot_kin \
+  scenario=mpc_scenario \
+  scenario.running_objective.spot_gain=0 \
+  scenario.prediction_horizon=3 \
+  --interactive \
+  --fps=10
+```
 
 > **Note:**
 >
