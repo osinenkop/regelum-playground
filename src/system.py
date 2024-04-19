@@ -11,8 +11,6 @@ from .animation import (
 )
 from regelum.callback import detach
 
-from regelum.scenario import MPC
-
 
 # In the following two classes we want to alter their respective animation callbacks, so we:
 # - detach the default animations
