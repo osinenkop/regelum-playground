@@ -1,0 +1,10 @@
+_target_: src.objective.ThreeWheeledRobotCostWithSpot
+
+
+spot_mean_center_x%%: -0.5
+spot_mean_center_y%%: -0.5
+spot_std%%: 0.2
+
+weights: = [1, 10, 1, 0, 0]
+gaussian_mean: = [${.spot_mean_center_x%%}, ${.spot_mean_center_y%%}]
+gaussian_std: = ${.spot_std%%}

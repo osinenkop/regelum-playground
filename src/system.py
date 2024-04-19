@@ -5,8 +5,13 @@ from regelum.system import (
     ThreeWheeledRobotDynamic,
 )
 from regelum.animation import DefaultAnimation
-from .animation import ThreeWheeledRobotAnimationWithNewLims
+from .animation import (
+    ThreeWheeledRobotAnimationWithNewLims,
+    ThreeWheeledRobotAnimationWithSpot,
+)
 from regelum.callback import detach
+
+from regelum.scenario import MPC
 
 
 # In the following two classes we want to alter their respective animation callbacks, so we:
@@ -22,6 +27,7 @@ from regelum.callback import detach
 @detach
 class MyThreeWheeledRobotDynamic(ThreeWheeledRobotDynamic):
     """The parameters correspond roughly to those of Robotis TurtleBot3."""
+
     _parameters = {"m": 1, "I": 0.005}
     action_bounds = [[-1, 1], [-1, 1]]
 
@@ -31,7 +37,14 @@ class MyThreeWheeledRobotDynamic(ThreeWheeledRobotDynamic):
 @detach
 class MyThreeWheeledRobotKinematic(ThreeWheeledRobotKinematic):
     """The parameters correspond to those of Robotis TurtleBot3."""
+
     action_bounds = [[-0.22, 0.22], [-2.84, 2.84]]
+
+
+@ThreeWheeledRobotAnimationWithSpot.attach
+@DefaultAnimation.attach
+@detach
+class ThreeWheeledRobotKinematicWithSpot(MyThreeWheeledRobotKinematic): ...
 
 
 class InvertedPendulum(InvertedPendulum):
