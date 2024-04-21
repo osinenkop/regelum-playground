@@ -13,6 +13,9 @@
    * [PD controller for inverted pendulum with motor dynamics](#pd-controller-for-inverted-pendulum-with-motor-dynamics)
    * [Lyapunov-based controller for kinematic three-wheeled robot](#lyapunov-based-controller-for-kinematic-three-wheeled-robot)
    * [Backstepping controller for dynamic three-wheeled robot](#backstepping-controller-for-dynamic-three-wheeled-robot)
+   * [Model-predictive controller for three-wheeled robot](#model-predictive-controller-for-three-wheeled-robot)
+      + [On a plane with quadratic cost](#on-a-plane-with-quadratic-cost)
+      + [On a plane with a Guassian spot of high cost](#on-a-plane-with-a-guassian-spot-of-high-cost)
 - [Repo structure](#repo-structure)
 
 <!-- TOC end -->
@@ -132,9 +135,11 @@ python run.py policy=3wrobot_kin_min_grad_clf initial_conditions=3wrobot_kin sys
 python run.py policy=3wrobot_dyn_min_grad_clf initial_conditions=3wrobot_dyn system=3wrobot_dyn common.sampling_time=0.01 --interactive --fps=10 
 ```
 
-### MPC three-wheeled robot
+<!-- TOC --><a name="model-predictive-controller-for-three-wheeled-robot"></a>
+### Model-predictive controller for three-wheeled robot
 
-#### With spot
+<!-- TOC --><a name="on-a-plane-with-quadratic-cost"></a>
+#### On a plane with quadratic cost
 
 ```shell
 python run.py \
@@ -147,7 +152,9 @@ python run.py \
   --fps=10
 ```
 
-#### Without spot
+<!-- TOC --><a name="on-a-plane-with-a-guassian-spot-of-high-cost"></a>
+#### On a plane with a Guassian spot of high cost
+
 ```shell
 python run.py \
   initial_conditions=3wrobot_kin_with_spot \
@@ -158,6 +165,7 @@ python run.py \
   --interactive \
   --fps=10
 ```
+Notice how the robot avoids the spot with high cost
 
 > **Note:**
 >
