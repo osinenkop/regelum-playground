@@ -144,9 +144,9 @@ python run.py policy=3wrobot_dyn_min_grad_clf initial_conditions=3wrobot_dyn sys
 ```shell
 python run.py \
   initial_conditions=3wrobot_kin_with_spot \
-  system=3wrobot_kin_with_spot \
+  system=3wrobot_kin \
   scenario=mpc_scenario \
-  scenario.running_objective.spot_gain=100 \
+  scenario.running_objective.spot_gain=0 \
   scenario.prediction_horizon=3 \
   --interactive \
   --fps=10
@@ -158,9 +158,9 @@ python run.py \
 ```shell
 python run.py \
   initial_conditions=3wrobot_kin_with_spot \
-  system=3wrobot_kin \
+  system=3wrobot_kin_with_spot \
   scenario=mpc_scenario \
-  scenario.running_objective.spot_gain=0 \
+  scenario.running_objective.spot_gain=100 \
   scenario.prediction_horizon=3 \
   --interactive \
   --fps=10
