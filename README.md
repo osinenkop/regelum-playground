@@ -167,6 +167,17 @@ python run.py \
 ```
 Notice how the robot avoids the spot with high cost
 
+### Proximal Policy Optimizaion on Inverted Pendulum
+
+```
+python run.py \
+    scenario=ppo_scenario \
+    system=inv_pendulum \
+    common.time_final=5 \
+    scenario.N_episodes=1 
+```
+
+
 > **Note:**
 >
 > For the `--fps` parameter, you can select any suitable value to ensure a smooth experience (e.g., `--fps=2`, `--fps=10`, `--fps=20`, etc.).
