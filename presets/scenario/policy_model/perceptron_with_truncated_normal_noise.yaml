@@ -1,0 +1,14 @@
+std%%: 0.1
+normalize_output_coef%%: 0.001 
+leaky_relu_slope%%: .05
+
+_target_: regelum.model.PerceptronWithTruncatedNormalNoise
+dim_input: 2
+dim_output: 1
+dim_hidden: = [100, 20]
+n_hidden_layers: 2
+hidden_activation: = torch.nn.LeakyReLU(${.leaky_relu_slope%%})
+stds: = np.array([0.03]) 
+output_bounds: = np.array([[-0.3, 0.3]])
+is_truncated_to_output_bounds: True
+output_activation: = regelum.model.MultiplyByConstant(${.normalize_output_coef%%})

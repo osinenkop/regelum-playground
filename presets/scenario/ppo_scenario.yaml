@@ -1,0 +1,33 @@
+_target_: regelum.scenario.PPO
+
+defaults:
+  - policy_model: perceptron_with_truncated_normal_noise
+  - critic_model: perceptron
+
+sampling_time: $ common.sampling_time
+running_objective: 
+  _target_: regelum.objective.RunningObjective
+  model:
+    _target_: regelum.model.ModelQuadLin
+    weights: = numpy.array([10., 3., 0.])
+    quad_matrix_type: diagonal
+    is_with_linear_terms: False
+simulator: ~ simulator
+running_objective_type: cost
+discount_factor: 0.7
+N_iterations: 100
+N_episodes: 2
+critic_td_n: 1
+gae_lambda: 0.0
+cliprange: 0.2 
+is_normalize_advantages: True
+
+critic_n_epochs: 50
+critic_opt_method: = torch.optim.Adam
+critic_opt_method_kwargs: 
+  lr: 0.001
+
+policy_n_epochs: 100
+policy_opt_method: = torch.optim.Adam
+policy_opt_method_kwargs: 
+  lr: 0.005

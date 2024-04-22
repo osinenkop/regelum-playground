@@ -9,6 +9,7 @@ defaults:
 callbacks:
   - regelum.callback.ScenarioStepLogger
   - regelum.callback.HistoricalDataCallback
+  - regelum.callback.ValueCallback
 
 rehydra:
   sweep:
