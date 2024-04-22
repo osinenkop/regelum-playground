@@ -1,5 +1,5 @@
 import regelum as rg
-
+import src
 
 @rg.main(config_name="main", config_path="presets")
 def launch(cfg):

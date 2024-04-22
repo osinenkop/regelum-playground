@@ -50,6 +50,7 @@ class InvertedPendulum(InvertedPendulum):
 
     _parameters = {"mass": 0.127, "grav_const": 9.81, "length": 0.337}
 
+    @apply_callbacks()
     def pendulum_moment_inertia(self):
         return self._parameters["mass"] * self._parameters["length"] ** 2 / 3
 

@@ -10,6 +10,9 @@ callbacks:
   - regelum.callback.ScenarioStepLogger
   - regelum.callback.HistoricalDataCallback
   - regelum.callback.ValueCallback
+  #- src.callback.StateLogger
+  #- src.callback.ObservationLogger
+  #- src.callback.MomentOfInertiaLogger
 
 rehydra:
   sweep:
