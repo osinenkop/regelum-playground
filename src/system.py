@@ -71,6 +71,15 @@ class InvertedPendulum(InvertedPendulum):
 
         return Dstate
 
+    def _get_observation(self, time, state, inputs):
+        observation = rg.zeros(self._dim_observation, prototype=state)
+
+        observation[0] = 1 - rg.cos(state[0])
+        observation[1] = rg.sin(state[0])
+        observation[2] = state[1]
+
+        return observation
+
 
 class InvertedPendulumWithFriction(InvertedPendulum):
     """The parameters of this system roughly resemble those of a Quanser Rotary Inverted Pendulum."""
