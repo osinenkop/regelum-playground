@@ -5,11 +5,13 @@ defaults:
   - critic_model: perceptron
 
 sampling_time: $ common.sampling_time
+observer:
+  _target_: src.observer.PendulumObserver
 running_objective: 
   _target_: regelum.objective.RunningObjective
   model:
     _target_: regelum.model.ModelQuadLin
-    weights: = numpy.array([10., 3., 0.])
+    weights: = numpy.array([10., 10., 3., 0.])
     quad_matrix_type: diagonal
     is_with_linear_terms: False
 simulator: ~ simulator

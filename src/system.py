@@ -48,6 +48,7 @@ class ThreeWheeledRobotKinematicWithSpot(MyThreeWheeledRobotKinematic): ...
 class InvertedPendulum(InvertedPendulum):
     """The parameters of this system roughly resemble those of a Quanser Rotary Inverted Pendulum."""
 
+    _dim_observation = 3
     _parameters = {"mass": 0.127, "grav_const": 9.81, "length": 0.337}
 
     def pendulum_moment_inertia(self):

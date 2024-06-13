@@ -3,7 +3,7 @@ normalize_output_coef%%: 0.01
 leaky_relu_slope%%: .05
 
 _target_: regelum.model.PerceptronWithTruncatedNormalNoise
-dim_input: 2
+dim_input: 3
 dim_output: 1
 dim_hidden: = [100, 20]
 n_hidden_layers: 2
