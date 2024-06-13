@@ -1,0 +1,7 @@
+_target_: src.simulator.StateInitRandomSamplerSimulator
+
+system: ~ system
+# state_init: = src.simulator.generate_state_init_for_pendulum
+time_final: $ common.time_final
+max_step: $ common.sampling_time
+
