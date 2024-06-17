@@ -5,13 +5,18 @@ defaults:
   - critic_model: perceptron
 
 sampling_time: $ common.sampling_time
+termination_criterion:
+  _target_: src.termination_criterion.SuccessTerminationCriterionInvPendulum
+  required_hold_time: 3
+  angle_abs_bound: 0.2
+  angle_vel_abs_bound: 5.
 observer:
   _target_: src.observer.PendulumObserver
 running_objective: 
   _target_: regelum.objective.RunningObjective
   model:
     _target_: regelum.model.ModelQuadLin
-    weights: = numpy.array([10., 10., 3., 0.])
+    weights: = numpy.array([3., 3., 3, 0.])
     quad_matrix_type: diagonal
     is_with_linear_terms: False
 simulator: ~ simulator
@@ -33,3 +38,4 @@ policy_n_epochs: 100
 policy_opt_method: = torch.optim.Adam
 policy_opt_method_kwargs: 
   lr: 0.005
+

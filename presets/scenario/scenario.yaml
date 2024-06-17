@@ -4,3 +4,10 @@ _target_: regelum.scenario.Scenario
 policy: ~ policy
 simulator: ~ simulator
 sampling_time: $ common.sampling_time
+termination_criterion:
+  _target_: src.termination_criterion.SuccessTerminationCriterionInvPendulum
+  required_hold_time: 1
+  angle_abs_bound: 0.1
+  angle_vel_abs_bound: 12.
+
+N_episodes: 2

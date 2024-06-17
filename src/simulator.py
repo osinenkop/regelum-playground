@@ -3,13 +3,15 @@ from regelum.system import System, ComposedSystem
 from typing import Union, Optional, Callable
 import numpy as np
 
+from regelum.scenario import RLScenario
+
 
 def generate_state_init_for_pendulum():
     return np.array(
         [
             [
-                np.random.uniform(low=-2 * np.pi / 3, high=2 * np.pi / 3),
-                np.random.uniform(-0.01, 0.01),
+                np.random.uniform(low=np.pi - np.pi / 2, high=np.pi + np.pi / 2),
+                np.random.uniform(-8, 8),
             ]
         ]
     )

@@ -77,7 +77,7 @@ class InvertedPendulum(InvertedPendulum):
 
         observation[0] = 1 - rg.cos(state[0])
         observation[1] = rg.sin(state[0])
-        observation[2] = state[1]
+        observation[2] = state[1] / 13
 
         return observation
 

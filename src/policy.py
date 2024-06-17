@@ -11,7 +11,6 @@ from typing import Union
 from regelum.utils import rg
 from regelum import CasadiOptimizerConfig
 
-
 def soft_switch(signal1, signal2, gate, loc=np.cos(np.pi / 4), scale=10):
 
     # Soft switch coefficient
