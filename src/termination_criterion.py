@@ -1,6 +1,10 @@
 import numpy as np
 
 
+def angle_normalize(x):
+    return ((x + np.pi) % (2 * np.pi)) - np.pi
+
+
 class SuccessTerminationCriterionInvPendulum:
     def __init__(
         self,
@@ -19,20 +23,20 @@ class SuccessTerminationCriterionInvPendulum:
             self.buffer_states = []
             self.buffer_times = []
 
-        if (
-            len(self.buffer_times) == 0
-            or time - self.buffer_times[0] < self.required_hold_time
-        ):
-            self.buffer_times.append(np.copy(time))
-            self.buffer_states.append(np.copy(state))
-        else:
-            self.buffer_states.append(np.copy(state))
-            self.buffer_states.pop(0)
+        self.buffer_times.append(np.copy(time))
+        self.buffer_states.append(np.copy(state))
 
-            self.buffer_times.append(np.copy(time))
+        while (
+            len(self.buffer_times) > 0
+            and time - self.buffer_times[0] > self.required_hold_time
+        ):
+            self.buffer_states.pop(0)
             self.buffer_times.pop(0)
 
+        buffer_states_array = np.array(self.buffer_states)
+        buffer_states_array[:, 0] = angle_normalize(buffer_states_array[:, 0])
+
         return np.all(
-            np.mean(np.abs(self.buffer_states), axis=0)
+            np.mean(np.abs(buffer_states_array), axis=0)
             < np.array([[self.angle_abs_bound, self.angle_vel_abs_bound]])
         )

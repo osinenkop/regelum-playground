@@ -1,4 +1,4 @@
-_target_: regelum.scenario.Scenario
+_target_: src.scenario.Scenario
 
 
 policy: ~ policy
@@ -8,6 +8,6 @@ termination_criterion:
   _target_: src.termination_criterion.SuccessTerminationCriterionInvPendulum
   required_hold_time: 1
   angle_abs_bound: 0.1
-  angle_vel_abs_bound: 12.
+  angle_vel_abs_bound: = np.inf
 
 N_episodes: 2
