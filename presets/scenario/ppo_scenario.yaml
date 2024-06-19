@@ -5,11 +5,11 @@ defaults:
   - critic_model: perceptron
 
 sampling_time: $ common.sampling_time
-termination_criterion:
-  _target_: src.termination_criterion.SuccessTerminationCriterionInvPendulum
-  required_hold_time: 1
-  angle_abs_bound: 0.3
-  angle_vel_abs_bound: = np.inf
+# termination_criterion:
+#   _target_: src.termination_criterion.SuccessTerminationCriterionInvPendulum
+#   required_hold_time: 1
+#   angle_abs_bound: 0.3
+#   angle_vel_abs_bound: = np.inf
 observer:
   _target_: src.observer.PendulumObserver
 running_objective: 

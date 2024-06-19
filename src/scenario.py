@@ -17,6 +17,7 @@ from regelum.policy import (
     PolicySDPG,
     PolicyDDPG,
 )
+from .critic import CriticPPO
 from regelum.critic import Critic, CriticCALF, CriticTrivial
 from typing import Optional, Union, Type, Dict, List, Any, Callable
 from regelum.objective import RunningObjective
@@ -83,16 +84,11 @@ def get_policy_gradient_kwargs(
             and is_reinstantiate_critic_optimizer is not None
             and critic_is_value_function is not None
         ), "critic_n_epochs, critic_td_n, critic_opt_method, critic_opt_method_kwargs, is_reinstantiate_critic_optimizer, critic_is_value_function should be set"
-        critic = Critic(
-            system=system,
+        critic = CriticPPO(
             discount_factor=discount_factor,
             sampling_time=sampling_time,
             model=critic_model,
             td_n=critic_td_n,
-            device=device,
-            is_value_function=critic_is_value_function,
-            is_on_policy=True,
-            is_same_critic=True,
             optimizer_config=TorchOptimizerConfig(
                 critic_n_epochs,
                 data_buffer_iter_bathes_kwargs={
@@ -106,7 +102,6 @@ def get_policy_gradient_kwargs(
                 opt_method=critic_opt_method,
                 is_reinstantiate_optimizer=is_reinstantiate_critic_optimizer,
             ),
-            is_full_iteration_epoch=True,
             **(critic_kwargs if critic_kwargs is not None else dict()),
         )
     else:

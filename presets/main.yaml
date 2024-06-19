@@ -10,6 +10,8 @@ callbacks:
   - regelum.callback.ScenarioStepLogger
   - regelum.callback.HistoricalDataCallback
   - regelum.callback.ValueCallback
+  - regelum.callback.CriticObjectiveSaver
+  - regelum.callback.PolicyObjectiveSaver
 
 rehydra:
   sweep:
