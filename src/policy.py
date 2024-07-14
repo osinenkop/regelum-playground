@@ -529,7 +529,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         # CALFQ
 
         # Probability to take CALF action even when CALF constraints are not satisfied
-        self.relax_probability = 0.4
+        self.relax_probability = 0.99
 
         self.critic_weight_tensor_safe = self.critic_weight_tensor_init
         self.observation_safe = self.observation_init
