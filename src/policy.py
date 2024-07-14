@@ -483,7 +483,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         self.score = 0
 
         # Critic
-        self.critic_learn_rate = 1e-3
+        self.critic_learn_rate = 1e-12
 
         self.critic_struct = "quad-nomix"
 
@@ -494,35 +494,35 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                 / 2
                 + (self.dim_observation + self.dim_action)
             )
-            self.critic_weight_min = -1e3 * np.ones(self.dim_critic)
-            self.critic_weight_max = 1e3 * np.ones(self.dim_critic)
+            self.critic_weight_min = -1e3
+            self.critic_weight_max = 1e3
         elif self.critic_struct == "quadratic":
             self.dim_critic = int(
                 ((self.dim_observation + self.dim_action) + 1)
                 * (self.dim_observation + self.dim_action)
                 / 2
             )
-            self.critic_weight_min = np.zeros(self.dim_critic)
-            self.critic_weight_max = 1e3 * np.ones(self.dim_critic)
+            self.critic_weight_min = 0
+            self.critic_weight_max = 1e3
         elif self.critic_struct == "quad-nomix":
             self.dim_critic = self.dim_observation + self.dim_action
-            self.critic_weight_min = np.zeros(self.dim_critic)
-            self.critic_weight_max = 1e3 * np.ones(self.dim_critic)
+            self.critic_weight_min = 0
+            self.critic_weight_max = 1e3
         elif self.critic_struct == "quad-mix":
             self.dim_critic = int(
                 self.dim_observation
                 + self.dim_observation * self.dim_action
                 + self.dim_action
             )
-            self.critic_weight_min = -1e3 * np.ones(self.dim_critic)
-            self.critic_weight_max = 1e3 * np.ones(self.dim_critic)
+            self.critic_weight_min = -1e3
+            self.critic_weight_max = 1e3
 
         self.critic_weight_tensor_init = to_row_vec(
             np.random.uniform(10, 1000, size=self.dim_critic)
         )
         self.critic_weight_tensor = self.critic_weight_tensor_init
 
-        self.critic_weight_change_penalty_coeff = 1e4
+        self.critic_weight_change_penalty_coeff = 0.0
 
         # CALFQ
 
@@ -817,7 +817,8 @@ class InvertedPendulumRcognitaCALFQ(Policy):
             self.critic_weight_min, self.critic_weight_max, keep_feasible=True
         )
 
-        critic_weight_tensor_change_start_guess = 0
+        critic_weight_tensor_change_start_guess = to_row_vec(np.zeros(self.dim_critic))
+
         if use_calf_constraints:
             if use_grad_descent:
                 # Will only penalize decay
@@ -922,6 +923,8 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         critic_low_kappa = self.critic_low_kappa_coeff * norm(observation) ** 2
         critic_up_kappa = self.critic_up_kappa_coeff * norm(observation) ** 2
 
+        sample = np.random.rand()
+
         if (
             -self.critic_max_desired_decay
             <= self.calf_diff(critic_weight_tensor, observation, action)
@@ -933,6 +936,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                 action,
             )
             <= critic_up_kappa
+            or sample <= self.relax_probability
         ):
 
             self.critic_weight_tensor_safe = critic_weight_tensor
@@ -950,15 +954,8 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
         else:
 
-            sample = np.random.rand()
-
-            if sample >= self.relax_probability:
-                self.safe_count += 1
-                return self.get_safe_action(observation)
-
-            else:
-                self.calf_count += 1
-                return action
+            self.safe_count += 1
+            return self.get_safe_action(observation)
 
     def get_safe_action(self, observation: np.ndarray) -> np.ndarray:
 
@@ -1004,10 +1001,13 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
         # Compute new critic weights
         self.critic_weight_tensor = self.get_optimized_critic_weights(
-            observation, self.action_curr
+            observation,
+            self.action_curr,
+            use_calf_constraints=False,
+            use_grad_descent=True,
         )
 
-        # Apply CALF filter that checks constraint satisfaction
+        # Apply CALF filter that checks constraint satisfaction and updates the CALF's state
         action = self.calf_filter(self.critic_weight_tensor, observation, new_action)
 
         # DEBUG
