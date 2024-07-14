@@ -12,6 +12,9 @@ from numpy.core.multiarray import array
 from numpy.matlib import repmat
 from numpy.linalg import norm
 
+from scipy.optimize import minimize
+from scipy.optimize import NonlinearConstraint
+
 from regelum.policy import Policy
 from regelum.utils import rg
 from regelum import CasadiOptimizerConfig
@@ -519,9 +522,12 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         )
         self.critic_weight_tensor = self.critic_weight_tensor_init
 
-        self.critic_weight_change_penalty_coeff = 0.0
+        self.critic_weight_change_penalty_coeff = 1e4
 
         # CALFQ
+
+        # Probability to take CALF action even when CALF constraints are not satisfied
+        self.relax_probability = 0.2
 
         self.critic_weight_tensor_safe = self.critic_weight_tensor_init
         self.observation_safe = self.observation_init
@@ -544,8 +550,8 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
         self.calf_penalty_coeff = 0.5
 
-        self.count_calf = 0
-        self.count_safe = 0
+        self.calf_count = 0
+        self.safe_count = 0
 
         # Debugging
         self.debug_print_counter = 0
@@ -721,7 +727,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
         return result
 
-    def calf_decay_constraint(self, critic_weight_tensor, observation, action):
+    def calf_diff(self, critic_weight_tensor, observation, action):
         # Q^w  (s_t, a_t)
         critic_new = self.critic_model(critic_weight_tensor, observation, action)
         # Q^w† (s†, a†)
@@ -783,7 +789,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         constraints = []
         constraints.append(
             sp.optimize.NonlinearConstraint(
-                lambda critic_weight_tensor: self.calf_decay_constraint(
+                lambda critic_weight_tensor: self.calf_diff(
                     critic_weight_tensor=critic_weight_tensor,
                     observation=observation,
                     action=action,
@@ -793,6 +799,8 @@ class InvertedPendulumRcognitaCALFQ(Policy):
             )
         )
         if use_kappa_constraint:
+            critic_low_kappa = self.critic_low_kappa_coeff * norm(observation) ** 2
+            critic_up_kappa = self.critic_up_kappa_coeff * norm(observation) ** 2
             constraints.append(
                 sp.optimize.NonlinearConstraint(
                     lambda critic_weight_tensor: self.critic_model(
@@ -800,19 +808,19 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                         observation=observation,
                         action=action,
                     ),
-                    self.critic_low_kappa_coeff * norm(observation) ** 2,
-                    self.critic_up_kappa_coeff * norm(observation) ** 2,
+                    critic_low_kappa,
+                    critic_up_kappa,
                 )
             )
 
-        bnds = sp.optimize.Bounds(
+        bounds = sp.optimize.Bounds(
             self.critic_weight_min, self.critic_weight_max, keep_feasible=True
         )
 
         critic_weight_tensor_change_start_guess = 0
         if use_calf_constraints:
             if use_grad_descent:
-                # Will only penalize decay and clip critic afterwards
+                # Will only penalize decay
                 critic_weight_tensor_change = -self.critic_learn_rate * (
                     self.critic_obj_grad(self.critic_weight_tensor)
                     + self.calf_decay_constraint_penalty_grad(
@@ -820,12 +828,12 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                     )
                 )
             else:
-                critic_weight_tensor_change = sp.minimize(
+                critic_weight_tensor_change = minimize(
                     self.critic_obj(critic_weight_tensor_change),
                     critic_weight_tensor_change_start_guess,
                     method=critic_opt_method,
                     tol=1e-3,
-                    bounds=bnds,
+                    bounds=bounds,
                     constraints=constraints,
                     options=critic_opt_options,
                 ).x
@@ -836,12 +844,12 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                     * self.critic_obj_grad(self.critic_weight_tensor)
                 )
             else:
-                critic_weight_tensor_change = sp.minimize(
+                critic_weight_tensor_change = minimize(
                     self.critic_obj(critic_weight_tensor_change),
                     critic_weight_tensor_change_start_guess,
                     method=critic_opt_method,
                     tol=1e-3,
-                    bounds=bnds,
+                    bounds=bounds,
                     options=critic_opt_options,
                 ).x
 
@@ -855,6 +863,102 @@ class InvertedPendulumRcognitaCALFQ(Policy):
             )
 
         return self.critic_weight_tensor + critic_weight_tensor_change
+
+    def actor_obj(self, action_change, critic_weight_tensor, observation):
+        """
+        Objective function for actor learning.
+
+        """
+
+        return self.critic_model(
+            critic_weight_tensor, observation, self.action_curr + action_change
+        )
+
+    def get_optimized_action(self, critic_weight_tensor, observation):
+
+        actor_opt_method = "SLSQP"
+        if actor_opt_method == "trust-constr":
+            actor_opt_options = {
+                "maxiter": 40,
+                "disp": False,
+            }  #'disp': True, 'verbose': 2}
+        else:
+            actor_opt_options = {
+                "maxiter": 40,
+                "maxfev": 60,
+                "disp": False,
+                "adaptive": True,
+                "xatol": 1e-3,
+                "fatol": 1e-3,
+            }  # 'disp': True, 'verbose': 2}
+
+        action_change_start_guess = np.zeros(self.dim_action)
+
+        bounds = sp.optimize.Bounds(
+            self.action_min, self.action_max, keep_feasible=True
+        )
+
+        action_change = minimize(
+            lambda action_change: self.actor_obj(
+                action_change, critic_weight_tensor, observation
+            ),
+            action_change_start_guess,
+            method=actor_opt_method,
+            tol=1e-3,
+            bounds=bounds,
+            options=actor_opt_options,
+        ).x
+
+        return self.action_curr + action_change
+
+    def calf_filter(self, critic_weight_tensor, observation, action):
+        """
+        If CALF constraints are satisfied, put the specified action through and update the CALF's state
+        (safe weights, observation and action).
+        Otherwise, return a safe action, do not update the CALF's state.
+
+        """
+
+        critic_low_kappa = self.critic_low_kappa_coeff * norm(observation) ** 2
+        critic_up_kappa = self.critic_up_kappa_coeff * norm(observation) ** 2
+
+        if (
+            -self.critic_max_desired_decay
+            <= self.calf_diff(critic_weight_tensor, observation, action)
+            <= -self.critic_desired_decay
+            and critic_low_kappa
+            <= self.critic_model(
+                critic_weight_tensor,
+                observation,
+                action,
+            )
+            <= critic_up_kappa
+        ):
+
+            self.critic_weight_tensor_safe = critic_weight_tensor
+            self.observation_safe = observation
+            self.action_safe = action
+
+            self.observation_buffer_safe = push_vec(
+                self.observation_buffer_safe, observation
+            )
+            self.action_buffer_safe = push_vec(self.action_buffer_safe, action)
+
+            self.calf_count += 1
+
+            return action
+
+        else:
+
+            sample = np.random.rand()
+
+            if sample >= self.relax_probability:
+                self.safe_count += 1
+                return self.get_safe_action(observation)
+
+            else:
+                self.calf_count += 1
+                return action
 
     def get_safe_action(self, observation: np.ndarray) -> np.ndarray:
 
@@ -880,50 +984,48 @@ class InvertedPendulumRcognitaCALFQ(Policy):
             condition=np.cos(angle) <= self.switch_loc,
         )
 
-        return np.array(
-            [
-                [
-                    np.clip(
-                        action,
-                        self.action_min,
-                        self.action_max,
-                    )
-                ]
-            ]
-        )
+        return action
 
     # /rc
 
     def get_action(self, observation: np.ndarray) -> np.ndarray:
-
-        params = self.system._parameters
-        mass, grav_const, length = (
-            params["mass"],
-            params["grav_const"],
-            params["length"],
-        )
-
-        angle = observation[0, 0]
-        angle_vel = observation[0, 1]
-
-        energy_total = (
-            mass * grav_const * length * (np.cos(angle) - 1) / 2
-            + 1 / 2 * self.system.pendulum_moment_inertia() * angle_vel**2
-        )
-        energy_control_action = -self.gain * np.sign(angle_vel * energy_total)
-
-        action = hard_switch(
-            signal1=energy_control_action,
-            signal2=-self.pd_coeffs[0] * np.sin(angle) - self.pd_coeffs[1] * angle_vel,
-            condition=np.cos(angle) <= self.switch_loc,
-        )
 
         # Update replay buffers
         self.action_buffer = push_vec(self.action_buffer, self.action_curr)
         self.observation_buffer = push_vec(self.observation_buffer, observation)
 
         # Update score (cumulative objective)
-        self.score += self.run_obj(observation, action) * self.action_sampling_time
+        self.score += (
+            self.run_obj(observation, self.action_curr) * self.action_sampling_time
+        )
+
+        # Update action
+        new_action = self.get_optimized_action(self.critic_weight_tensor, observation)
+
+        # Compute new critic weights
+        self.critic_weight_tensor = self.get_optimized_critic_weights(
+            observation, self.action_curr
+        )
+
+        # Apply CALF filter that checks constraint satisfaction
+        action = self.calf_filter(self.critic_weight_tensor, observation, new_action)
+
+        # DEBUG
+        # action = self.get_safe_action(observation)
+        # /DEBUG
+
+        # Apply action bounds
+        action = np.clip(
+            action,
+            self.action_min,
+            self.action_max,
+        )
+
+        # Force proper dimensionsing according to the convention
+        action = to_row_vec(action)
+
+        # Update current action
+        self.action_curr = action
 
         # DEBUG
         np.set_printoptions(precision=3)
@@ -946,22 +1048,20 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                 self.critic_obj_grad(self.critic_weight_tensor_init),
             )
             print(
-                "--DEBUG-- optimizied criti weights:",
+                "--DEBUG-- optimizied critic weights:",
                 self.get_optimized_critic_weights(observation, action),
+            )
+            print(
+                "--DEBUG-- CALF counter:",
+                self.calf_count,
+            )
+            print(
+                "--DEBUG-- Safe counter:",
+                self.safe_count,
             )
 
         self.debug_print_counter += 1
 
         # /DEBUG
 
-        return np.array(
-            [
-                [
-                    np.clip(
-                        action,
-                        self.action_min,
-                        self.action_max,
-                    )
-                ]
-            ]
-        )
+        return action
