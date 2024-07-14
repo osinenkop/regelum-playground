@@ -13,7 +13,6 @@ from numpy.matlib import repmat
 from numpy.linalg import norm
 
 from scipy.optimize import minimize
-from scipy.optimize import NonlinearConstraint
 
 from regelum.policy import Policy
 from regelum.utils import rg
@@ -472,7 +471,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
         self.action_sampling_time = 0.01  # Taken from common/inv_pendulum config
 
-        self.run_obj_param_tensor = np.diag([1.0, 1.0, 0.0])
+        self.run_obj_param_tensor = np.diag([1.0, 1.0, 1.0])
 
         self.discount_factor = 1.0
 
@@ -483,9 +482,10 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         self.score = 0
 
         # Critic
-        self.critic_learn_rate = 1e-7
+        self.critic_learn_rate = 1e-4
+        self.critic_num_grad_steps = 20
 
-        self.critic_struct = "quad-nomix"
+        self.critic_struct = "quad-mix"
 
         if self.critic_struct == "quad-lin":
             self.dim_critic = int(
@@ -562,7 +562,20 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
     def run_obj(self, observation, action):
 
-        observation_action = np.hstack([to_row_vec(observation), to_row_vec(action)])
+        # DEBUG
+        # Override observation for pendulum
+
+        modified_observation = to_row_vec(observation)
+        angle = modified_observation[0, 0]
+        angle_velocity = modified_observation[0, 1]
+
+        modified_observation = np.array([1 - np.cos(angle), angle_velocity])
+
+        # /DEBUG
+
+        observation_action = np.hstack(
+            [to_row_vec(modified_observation), to_row_vec(action)]
+        )
 
         result = observation_action @ self.run_obj_param_tensor @ observation_action.T
 
@@ -740,7 +753,8 @@ class InvertedPendulumRcognitaCALFQ(Policy):
     def calf_decay_constraint_penalty_grad(
         self, critic_weight_tensor, observation, action
     ):
-        # This one is handy for explicit gradient-descent optimization
+        # This one is handy for explicit gradient-descent optimization.
+        # We take a ReLU here
 
         critic_new = self.critic_model(critic_weight_tensor, observation, action)
 
@@ -748,11 +762,23 @@ class InvertedPendulumRcognitaCALFQ(Policy):
             self.critic_weight_tensor_safe, self.observation_safe, self.action_safe
         )
 
+        if critic_new - critic_safe <= -self.critic_desired_decay:
+            relu_grad = 0
+        else:
+            relu_grad = 1
+
         return (
             self.calf_penalty_coeff
             * self.critic_model_grad(critic_weight_tensor, observation, action)
-            * (critic_new - critic_safe + self.critic_desired_decay)
+            * relu_grad
         )
+
+        # Quadratic penalty
+        # return (
+        #     self.calf_penalty_coeff
+        #     * self.critic_model_grad(critic_weight_tensor, observation, action)
+        #     * (critic_new - critic_safe + self.critic_desired_decay)
+        # )
 
     def get_optimized_critic_weights(
         self,
@@ -786,6 +812,9 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                 "fatol": 1e-3,
             }  # 'disp': True, 'verbose': 2}
 
+        critic_low_kappa = self.critic_low_kappa_coeff * norm(observation) ** 2
+        critic_up_kappa = self.critic_up_kappa_coeff * norm(observation) ** 2
+
         constraints = []
         constraints.append(
             sp.optimize.NonlinearConstraint(
@@ -799,8 +828,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
             )
         )
         if use_kappa_constraint:
-            critic_low_kappa = self.critic_low_kappa_coeff * norm(observation) ** 2
-            critic_up_kappa = self.critic_up_kappa_coeff * norm(observation) ** 2
+
             constraints.append(
                 sp.optimize.NonlinearConstraint(
                     lambda critic_weight_tensor: self.critic_model(
@@ -821,13 +849,44 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
         if use_calf_constraints:
             if use_grad_descent:
-                # Will only penalize decay
-                critic_weight_tensor_change = -self.critic_learn_rate * (
-                    self.critic_obj_grad(self.critic_weight_tensor)
-                    + self.calf_decay_constraint_penalty_grad(
-                        self.critic_weight_tensor, observation, action
+
+                critic_weight_tensor = self.critic_weight_tensor
+
+                for _ in range(self.critic_num_grad_steps):
+
+                    critic = self.critic_model(
+                        critic_weight_tensor, observation, action
                     )
-                )
+
+                    # Simple ReLU penalties for bounding kappas
+                    if critic <= critic_up_kappa:
+                        relu_kappa_up_grad = 0
+                    else:
+                        relu_kappa_up_grad = 1
+
+                    if critic >= critic_low_kappa:
+                        relu_kappa_low_grad = 0
+                    else:
+                        relu_kappa_low_grad = 1
+
+                    critic_weight_tensor_change = -self.critic_learn_rate * (
+                        self.critic_obj_grad(critic_weight_tensor)
+                        + self.calf_decay_constraint_penalty_grad(
+                            self.critic_weight_tensor, observation, action
+                        )
+                        + self.calf_penalty_coeff
+                        * self.critic_model_grad(
+                            critic_weight_tensor, observation, action
+                        )
+                        * relu_kappa_low_grad
+                        + self.calf_penalty_coeff
+                        * self.critic_model_grad(
+                            critic_weight_tensor, observation, action
+                        )
+                        * relu_kappa_up_grad
+                    )
+                    critic_weight_tensor += critic_weight_tensor_change
+
             else:
                 critic_weight_tensor_change = minimize(
                     self.critic_obj(critic_weight_tensor_change),
@@ -967,17 +1026,18 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         )
 
         angle = observation[0, 0]
-        angle_vel = observation[0, 1]
+        angle_velocity = observation[0, 1]
 
         energy_total = (
             mass * grav_const * length * (np.cos(angle) - 1) / 2
-            + 1 / 2 * self.system.pendulum_moment_inertia() * angle_vel**2
+            + 1 / 2 * self.system.pendulum_moment_inertia() * angle_velocity**2
         )
-        energy_control_action = -self.gain * np.sign(angle_vel * energy_total)
+        energy_control_action = -self.gain * np.sign(angle_velocity * energy_total)
 
         action = hard_switch(
             signal1=energy_control_action,
-            signal2=-self.pd_coeffs[0] * np.sin(angle) - self.pd_coeffs[1] * angle_vel,
+            signal2=-self.pd_coeffs[0] * np.sin(angle)
+            - self.pd_coeffs[1] * angle_velocity,
             condition=np.cos(angle) <= self.switch_loc,
         )
 
@@ -1037,28 +1097,19 @@ class InvertedPendulumRcognitaCALFQ(Policy):
             )
             print(
                 "--DEBUG-- critic: %4.2f "
-                % self.critic_model(self.critic_weight_tensor_init, observation, action)
+                % self.critic_model(self.critic_weight_tensor, observation, action)
             )
             print(
                 "--DEBUG-- critic loss: %4.2f "
-                % self.critic_obj(self.critic_weight_tensor_init)
+                % self.critic_obj(self.critic_weight_tensor)
             )
             print(
                 "--DEBUG-- critic loss grad:",
-                self.critic_obj_grad(self.critic_weight_tensor_init),
+                self.critic_obj_grad(self.critic_weight_tensor),
             )
-            print(
-                "--DEBUG-- optimizied critic weights:",
-                self.get_optimized_critic_weights(observation, action),
-            )
-            print(
-                "--DEBUG-- CALF counter:",
-                self.calf_count,
-            )
-            print(
-                "--DEBUG-- Safe counter:",
-                self.safe_count,
-            )
+            print("--DEBUG-- critic weights:", self.critic_weight_tensor)
+            print("--DEBUG-- CALF counter:", self.calf_count)
+            print("--DEBUG-- Safe counter:", self.safe_count)
 
         self.debug_print_counter += 1
 
