@@ -1,4 +1,4 @@
-_target_: src.policy.InvertedPendulumEnergyBased
+_target_: src.policy.InvertedPendulumRcognitaCALFQ
 
 gain: 0.03 
 action_min: -0.1

@@ -11,6 +11,9 @@ from typing import Union
 from regelum.utils import rg
 from regelum import CasadiOptimizerConfig
 
+from .utilities import uptria2vec
+from .utilities import to_row_vec
+from .utilities import to_scalar
 
 def soft_switch(signal1, signal2, gate, loc=np.cos(np.pi / 4), scale=10):
 
@@ -413,3 +416,215 @@ class ThreeWheeledRobotDynamicMinGradCLF(ThreeWheeledRobotKinematicMinGradCLF):
         action = -self.gain * (force_and_moment - three_wheeled_robot_kin_action)
 
         return action
+
+class InvertedPendulumRcognitaCALFQ(Policy):
+    def __init__(
+        self,
+        gain: float,
+        action_min: float,
+        action_max: float,
+        switch_loc: float,
+        pd_coeffs: np.ndarray,
+        system: Union[InvertedPendulum, InvertedPendulumWithFriction],
+    ):
+        super().__init__()
+        self.gain = gain
+        self.action_min = action_min
+        self.action_max = action_max
+        self.switch_loc = switch_loc
+        self.pd_coeffs = pd_coeffs
+        self.system = system
+
+        ######################################################################### rc
+        #### Initialization of CALFQ
+
+        self.dim_state = 2
+        self.dim_input = 1
+        self.dim_observation = self.dim_state
+
+        self.state_init = np.array([[np.pi, 1]])    # Taken from initial_conditions config
+        self.action_init = self.get_safe_action(self.state_init)
+
+        self.action_sampling_time = 0.01    # Taken from common/inv_pendulum config
+
+        self.run_obj_pars = np.diag([1.0, 1.0, 0.0])
+
+        self.gamma = 1
+
+        self.buffer_size = 20
+        self.action_buffer = np.zeros( [self.buffer_size, self.dim_input] )
+        self.observation_buffer = np.zeros( [self.buffer_size, self.dim_observation] ) 
+
+        self.score = 0
+
+        ## Critic
+        self.critic_struct = 'quad-nomix'
+
+        if self.critic_struct == 'quad-lin':
+            self.dim_critic = int( ( ( self.dim_observation + self.dim_input ) + 1 ) *
+            ( self.dim_observation + self.dim_input )/2 + 
+            (self.dim_observation + self.dim_input) ) 
+            self.critic_weight_min = -1e3*np.ones(self.dim_critic) 
+            self.critic_weight_max = 1e3*np.ones(self.dim_critic) 
+        elif self.critic_struct == 'quadratic':
+            self.dim_critic = int( ( ( self.dim_observation + self.dim_input ) + 1 ) *
+            ( self.dim_observation +
+            self.dim_input )/2 )
+            self.critic_weight_min = np.zeros(self.dim_critic) 
+            self.critic_weight_max = 1e3*np.ones(self.dim_critic)    
+        elif self.critic_struct == 'quad-nomix':
+            self.dim_critic = self.dim_observation + self.dim_input
+            self.critic_weight_min = np.zeros(self.dim_critic) 
+            self.critic_weight_max = 1e3*np.ones(self.dim_critic)    
+        elif self.critic_struct == 'quad-mix':
+            self.dim_critic = int( self.dim_observation + self.dim_observation * self.dim_input + self.dim_input )
+            self.critic_weight_min = -1e3*np.ones(self.dim_critic)  
+            self.critic_weight_max = 1e3*np.ones(self.dim_critic)
+
+        self.critic_weight_tensor_init = to_row_vec( np.random.uniform(10, 1000, size = self.dim_critic) )
+
+        ## CALFQ
+
+        self.critic_weight_tensor_safe = self.critic_weight_tensor_init
+        self.observation_safe = self.state_init
+        self.action_safe = self.action_init
+
+        self.critic_weight_tensor_init_safe = self.critic_weight_tensor_init
+
+        self.critic_weight_tensor_buffer_safe = []        
+
+        self.critic_low_kappa_coeff = 1e-2
+        self.critic_up_kappa_coeff = 1e4
+        self.critic_desired_decay = 1e-4
+
+        self.action_buffer_safe = np.zeros( [self.buffer_size, self.dim_input] )
+        self.observation_buffer_safe = np.zeros( [self.buffer_size, self.dim_observation] )   
+
+        self.count_CALF = 0    
+        self.count_safe = 0 
+
+        ## Debugging
+        self.debug_print_counter = 0  
+
+        ######################################################################### /rc
+
+    ######################################################################### rc
+
+    def run_obj(self, observation, action):
+      
+        observation_action = np.hstack([observation, np.array( [[action]] ) ])
+        
+        result = observation_action @ self.run_obj_pars @ observation_action.T
+
+        return to_scalar(result)
+
+    def critic_model(self, observation, action, critic_weight_tensor):
+
+        observation_action = np.hstack([to_row_vec(observation), to_row_vec(action) ])
+        
+        if self.critic_struct == 'quad-lin':
+            feature_tensor = np.hstack([
+                uptria2vec( np.outer(observation_action, observation_action), force_row_vec=True ), 
+                observation_action
+                ])
+        elif self.critic_struct == 'quadratic':
+            feature_tensor = uptria2vec( np.outer(observation_action, observation_action), force_row_vec=True  ) 
+        elif self.critic_struct == 'quad-nomix':
+            feature_tensor = observation_action * observation_action
+        elif self.critic_struct == 'quad-mix':
+            feature_tensor = np.hstack([
+                to_row_vec(observation)**2,
+                np.kron(to_row_vec(observation), to_row_vec(action)),
+                to_row_vec(action)**2
+                ]) 
+
+        result = critic_weight_tensor @ feature_tensor.T      
+
+        return to_scalar(result)
+
+    def get_safe_action(self, observation: np.ndarray) -> np.ndarray:
+
+        params = self.system._parameters
+        mass, grav_const, length = (
+            params["mass"],
+            params["grav_const"],
+            params["length"],
+        )
+
+        angle = observation[0, 0]
+        angle_vel = observation[0, 1]
+
+        energy_total = (
+            mass * grav_const * length * (np.cos(angle) - 1) / 2
+            + 1/2 * self.system.pendulum_moment_inertia() * angle_vel**2
+        )
+        energy_control_action = -self.gain * np.sign(angle_vel * energy_total)
+
+        action = hard_switch(
+            signal1=energy_control_action,
+            signal2=-self.pd_coeffs[0] * np.sin(angle) - self.pd_coeffs[1] * angle_vel,
+            condition=np.cos(angle) <= self.switch_loc,
+        )
+
+        return np.array(
+            [
+                [
+                    np.clip(
+                        action,
+                        self.action_min,
+                        self.action_max,
+                    )
+                ]
+            ]
+        )
+
+    ######################################################################### /rc
+
+    def get_action(self, observation: np.ndarray) -> np.ndarray:
+
+        params = self.system._parameters
+        mass, grav_const, length = (
+            params["mass"],
+            params["grav_const"],
+            params["length"],
+        )
+
+        angle = observation[0, 0]
+        angle_vel = observation[0, 1]
+
+        energy_total = (
+            mass * grav_const * length * (np.cos(angle) - 1) / 2
+            + 1/2 * self.system.pendulum_moment_inertia() * angle_vel**2
+        )
+        energy_control_action = -self.gain * np.sign(angle_vel * energy_total)
+
+        action = hard_switch(
+            signal1=energy_control_action,
+            signal2=-self.pd_coeffs[0] * np.sin(angle) - self.pd_coeffs[1] * angle_vel,
+            condition=np.cos(angle) <= self.switch_loc,
+        )
+
+        # Update score (cumulative objective)
+        self.score += self.run_obj(observation, action) * self.action_sampling_time
+
+        ############################################ DEBUG
+
+        if self.debug_print_counter % 50 == 0:
+            print("--DEBUG-- reward: %4.2f score: %4.2f" % (-self.run_obj(observation, action), -self.score) )
+            print("--DEBUG-- critic: %4.2f " % self.critic_model(observation, action, self.critic_weight_tensor_init) )
+
+        self.debug_print_counter += 1
+
+        ############################################ /DEBUG
+
+        return np.array(
+            [
+                [
+                    np.clip(
+                        action,
+                        self.action_min,
+                        self.action_max,
+                    )
+                ]
+            ]
+        )
