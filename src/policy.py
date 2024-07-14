@@ -471,7 +471,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
         self.action_sampling_time = 0.01  # Taken from common/inv_pendulum config
 
-        self.run_obj_param_tensor = np.diag([1.0, 1.0, 1.0])
+        self.run_obj_param_tensor = np.diag([1.0, 1.0, 0.0])
 
         self.discount_factor = 1.0
 
@@ -482,10 +482,12 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         self.score = 0
 
         # Critic
-        self.critic_learn_rate = 1e-2
+        self.critic_learn_rate = 0.1
         self.critic_num_grad_steps = 20
 
         self.critic_struct = "quad-mix"
+
+        critic_big_number = 1e5
 
         if self.critic_struct == "quad-lin":
             self.dim_critic = int(
@@ -494,8 +496,8 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                 / 2
                 + (self.dim_observation + self.dim_action)
             )
-            self.critic_weight_min = -1e3
-            self.critic_weight_max = 1e3
+            self.critic_weight_min = -critic_big_number
+            self.critic_weight_max = critic_big_number
         elif self.critic_struct == "quadratic":
             self.dim_critic = int(
                 ((self.dim_observation + self.dim_action) + 1)
@@ -503,22 +505,22 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                 / 2
             )
             self.critic_weight_min = 0
-            self.critic_weight_max = 1e3
+            self.critic_weight_max = critic_big_number
         elif self.critic_struct == "quad-nomix":
             self.dim_critic = self.dim_observation + self.dim_action
             self.critic_weight_min = 0
-            self.critic_weight_max = 1e3
+            self.critic_weight_max = critic_big_number
         elif self.critic_struct == "quad-mix":
             self.dim_critic = int(
                 self.dim_observation
                 + self.dim_observation * self.dim_action
                 + self.dim_action
             )
-            self.critic_weight_min = -1e3
-            self.critic_weight_max = 1e3
+            self.critic_weight_min = -critic_big_number
+            self.critic_weight_max = critic_big_number
 
         self.critic_weight_tensor_init = to_row_vec(
-            np.random.uniform(10, 300, size=self.dim_critic)
+            np.random.uniform(1, critic_big_number / 10, size=self.dim_critic)
         )
         self.critic_weight_tensor = self.critic_weight_tensor_init
 
@@ -1075,7 +1077,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         action = self.calf_filter(self.critic_weight_tensor, observation, new_action)
 
         # DEBUG
-        # action = self.get_safe_action(observation)
+        action = self.get_safe_action(observation)
         # /DEBUG
 
         # Apply action bounds
