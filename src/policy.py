@@ -482,7 +482,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         self.score = 0
 
         # Critic
-        self.critic_learn_rate = 1e-4
+        self.critic_learn_rate = 1e-2
         self.critic_num_grad_steps = 20
 
         self.critic_struct = "quad-mix"
@@ -922,7 +922,11 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                 / np.linalg.cond(self.action_buffer)
             )
 
-        return self.critic_weight_tensor + critic_weight_tensor_change
+        return np.clip(
+            self.critic_weight_tensor + critic_weight_tensor_change,
+            self.critic_weight_min,
+            self.critic_weight_max,
+        )
 
     def actor_obj(self, action_change, critic_weight_tensor, observation):
         """
@@ -1071,7 +1075,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         action = self.calf_filter(self.critic_weight_tensor, observation, new_action)
 
         # DEBUG
-        action = self.get_safe_action(observation)
+        # action = self.get_safe_action(observation)
         # /DEBUG
 
         # Apply action bounds
