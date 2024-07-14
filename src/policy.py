@@ -529,7 +529,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         # CALFQ
 
         # Probability to take CALF action even when CALF constraints are not satisfied
-        self.relax_probability = 0.2
+        self.relax_probability = 0.3
 
         self.critic_weight_tensor_safe = self.critic_weight_tensor_init
         self.observation_safe = self.observation_init
@@ -1077,7 +1077,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         action = self.calf_filter(self.critic_weight_tensor, observation, new_action)
 
         # DEBUG
-        action = self.get_safe_action(observation)
+        # action = self.get_safe_action(observation)
         # /DEBUG
 
         # Apply action bounds
