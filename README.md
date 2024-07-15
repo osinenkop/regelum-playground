@@ -60,6 +60,9 @@ Below are examples with respective terminal run commands.
 python run.py policy=rc_calfq system=inv_pendulum --interactive --fps=10
 ```
 
+See `get_action`, there is a `# DEBUG` section where you can force nominal stabilizer for testing.
+Most CALF-Q settings are in the `__init__` of `InvertedPendulumRcognitaCALFQ` class.
+
 <!-- TOC --><a name="proportional-derivative-pd-controller-for-pendulum"></a>
 ### Proportional-derivative (PD) controller for pendulum
 
