@@ -1101,18 +1101,6 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                 "--DEBUG-- reward: %4.2f score: %4.2f"
                 % (-self.run_obj(observation, action), -self.score)
             )
-            print(
-                "--DEBUG-- critic: %4.2f "
-                % self.critic_model(self.critic_weight_tensor, observation, action)
-            )
-            print(
-                "--DEBUG-- critic loss: %4.2f "
-                % self.critic_obj(self.critic_weight_tensor)
-            )
-            print(
-                "--DEBUG-- critic loss grad:",
-                self.critic_obj_grad(self.critic_weight_tensor),
-            )
             print("--DEBUG-- critic weights:", self.critic_weight_tensor)
             print("--DEBUG-- CALF counter:", self.calf_count)
             print("--DEBUG-- Safe counter:", self.safe_count)

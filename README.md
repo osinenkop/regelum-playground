@@ -4,13 +4,14 @@
 - [Getting started](#getting-started)
    * [Installation requirements](#installation-requirements)
 - [Ready examples](#ready-examples)
-   * [Proportional-derivative (PD) controller for inverted pendulum](#proportional-derivative-pd-controller-for-inverted-pendulum)
-   * [Energy-based controller for inverted pendulum](#energy-based-controller-for-inverted-pendulum)
-   * [Energy-based controller for inverted pendulum with joint friction](#energy-based-controller-for-inverted-pendulum-with-joint-friction)
-   * [Energy-based controller with friction compenstation for inverted pendulum with joint friction](#energy-based-controller-with-friction-compenstation-for-inverted-pendulum-with-joint-friction)
-   * [Adaptive energ-based controller for inverted pendulum with joint friction](#adaptive-energ-based-controller-for-inverted-pendulum-with-joint-friction)
-   * [Backstepping controller for inverted pendulum with motor dynamics](#backstepping-controller-for-inverted-pendulum-with-motor-dynamics)
-   * [PD controller for inverted pendulum with motor dynamics](#pd-controller-for-inverted-pendulum-with-motor-dynamics)
+   * [(EXPERIMENTAL) CALF-Q controller for pendulum](#calfq-pendulum) 
+   * [Proportional-derivative (PD) controller for pendulum](#proportional-derivative-pd-controller-for-pendulum)
+   * [Energy-based controller for pendulum](#energy-based-controller-for-pendulum)
+   * [Energy-based controller for pendulum with joint friction](#energy-based-controller-for-pendulum-with-joint-friction)
+   * [Energy-based controller with friction compenstation for pendulum with joint friction](#energy-based-controller-with-friction-compenstation-for-pendulum-with-joint-friction)
+   * [Adaptive energ-based controller for pendulum with joint friction](#adaptive-energ-based-controller-for-pendulum-with-joint-friction)
+   * [Backstepping controller for pendulum with motor dynamics](#backstepping-controller-for-pendulum-with-motor-dynamics)
+   * [PD controller for pendulum with motor dynamics](#pd-controller-for-pendulum-with-motor-dynamics)
    * [Lyapunov-based controller for kinematic three-wheeled robot](#lyapunov-based-controller-for-kinematic-three-wheeled-robot)
    * [Backstepping controller for dynamic three-wheeled robot](#backstepping-controller-for-dynamic-three-wheeled-robot)
    * [Model-predictive controller for three-wheeled robot](#model-predictive-controller-for-three-wheeled-robot)
@@ -52,8 +53,15 @@ pip install -r requirements.txt
 
 Below are examples with respective terminal run commands. 
 
-<!-- TOC --><a name="proportional-derivative-pd-controller-for-inverted-pendulum"></a>
-### Proportional-derivative (PD) controller for inverted pendulum
+<!-- TOC --><a name="calfq-pendulum"></a>
+### (EXPERIMENTAL) CALF-Q controller for pendulum
+
+```shell
+python run.py policy=rc_calfq system=inv_pendulum --interactive --fps=10
+```
+
+<!-- TOC --><a name="proportional-derivative-pd-controller-for-pendulum"></a>
+### Proportional-derivative (PD) controller for pendulum
 
 ```shell
 python run.py policy=pd system=inv_pendulum --interactive --fps=10
@@ -70,15 +78,15 @@ python run.py policy=pd system=inv_pendulum policy.action_min=-2 policy.action_m
 
 Making the bounds sufficiently large will help the PD controller to upswing and upright hold the pendulum.
 
-<!-- TOC --><a name="energy-based-controller-for-inverted-pendulum"></a>
-### Energy-based controller for inverted pendulum
+<!-- TOC --><a name="energy-based-controller-for-pendulum"></a>
+### Energy-based controller for pendulum
 
 ```shell
 python run.py policy=energy_based system=inv_pendulum --interactive --fps=10
 ```  
 
-<!-- TOC --><a name="energy-based-controller-for-inverted-pendulum-with-joint-friction"></a>
-### Energy-based controller for inverted pendulum with joint friction
+<!-- TOC --><a name="energy-based-controller-for-pendulum-with-joint-friction"></a>
+### Energy-based controller for pendulum with joint friction
 
 ```shell
 python run.py policy=energy_based system=inv_pendulum_with_friction --interactive --fps=10
@@ -86,8 +94,8 @@ python run.py policy=energy_based system=inv_pendulum_with_friction --interactiv
 
 Observe it doesn't work due to ignorance of friction.
 
-<!-- TOC --><a name="energy-based-controller-with-friction-compenstation-for-inverted-pendulum-with-joint-friction"></a>
-### Energy-based controller with friction compenstation for inverted pendulum with joint friction
+<!-- TOC --><a name="energy-based-controller-with-friction-compenstation-for-pendulum-with-joint-friction"></a>
+### Energy-based controller with friction compenstation for pendulum with joint friction
 
 ```shell
 python run.py policy=energy_based_friction_compensation system=inv_pendulum_with_friction --interactive --fps=10
@@ -95,8 +103,8 @@ python run.py policy=energy_based_friction_compensation system=inv_pendulum_with
 
 This works better than the last one.
 
-<!-- TOC --><a name="adaptive-energ-based-controller-for-inverted-pendulum-with-joint-friction"></a>
-### Adaptive energ-based controller for inverted pendulum with joint friction
+<!-- TOC --><a name="adaptive-energ-based-controller-for-pendulum-with-joint-friction"></a>
+### Adaptive energ-based controller for pendulum with joint friction
 
 ```shell
 python run.py policy=energy_based_friction_adaptive system=inv_pendulum_with_friction --interactive --fps=10
@@ -104,8 +112,8 @@ python run.py policy=energy_based_friction_adaptive system=inv_pendulum_with_fri
 
 This should also work.
 
-<!-- TOC --><a name="backstepping-controller-for-inverted-pendulum-with-motor-dynamics"></a>
-### Backstepping controller for inverted pendulum with motor dynamics
+<!-- TOC --><a name="backstepping-controller-for-pendulum-with-motor-dynamics"></a>
+### Backstepping controller for pendulum with motor dynamics
 
 This showcases the use of backstepping.
 
@@ -113,8 +121,8 @@ This showcases the use of backstepping.
 python run.py policy=backstepping system=inv_pendulum_with_motor --interactive --fps=10 
 ``` 
 
-<!-- TOC --><a name="pd-controller-for-inverted-pendulum-with-motor-dynamics"></a>
-### PD controller for inverted pendulum with motor dynamics
+<!-- TOC --><a name="pd-controller-for-pendulum-with-motor-dynamics"></a>
+### PD controller for pendulum with motor dynamics
 
 ```shell
 python run.py policy=motor_pd system=inv_pendulum_with_motor --interactive --fps=10 
@@ -167,7 +175,7 @@ python run.py \
 ```
 Notice how the robot avoids the spot with high cost
 
-### Proximal Policy Optimizaion on Inverted Pendulum
+### Proximal Policy Optimizaion on Pendulum
 
 ```
 python run.py \
@@ -188,7 +196,7 @@ python run.py \
 - [`run.py`](./run.py): The main executable script.
 - [`src/`](./src/): Contains the source code of the repo.
     - [`policy.py`](./src/policy.py): Implements the PD and energy-based controllers.
-    - [`system.py`](./src/system.py): Implements the inverted pendulum system and inverted pendulum system with friction.
+    - [`system.py`](./src/system.py): Implements the pendulum system and pendulum system with friction.
 - [`presets/`](./presets/): Houses configuration files.
     - [`common/`](./presets/common): General configurations.
         - [`common.yaml`](./presets/common/common.yaml): Settings for common variables (like sampling time).
