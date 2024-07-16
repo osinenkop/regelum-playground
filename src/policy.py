@@ -451,11 +451,11 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         super().__init__()
         # 1. Common agent tuning settings
         self.run_obj_param_tensor = np.diag([1.0, 1.0, 0.0])
-        self.episode_total_time = 5.0
+        self.episode_total_time = 9.0
         # 2. Actor
         self.action_change_penalty_coeff = 0.0
         # 3. Critic
-        self.critic_learn_rate = 0.0005
+        self.critic_learn_rate = 0.0001
         self.critic_num_grad_steps = 20
         self.discount_factor = 1.0
         self.buffer_size = 20
@@ -975,7 +975,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
     def get_optimized_action(self, critic_weight_tensor, observation):
 
-        actor_opt_method = "SLSQP"
+        actor_opt_method = "trust-constr"
         if actor_opt_method == "trust-constr":
             actor_opt_options = {
                 "maxiter": 40,
