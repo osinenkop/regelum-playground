@@ -451,7 +451,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         super().__init__()
         # 1. Common agent tuning settings
         self.run_obj_param_tensor = np.diag([1.0, 1.0, 0.0])
-        self.episode_total_time = 5.0
+        self.episode_total_time = 8.0
         # 2. Actor
         self.action_change_penalty_coeff = 0.0
         # 3. Critic
@@ -498,7 +498,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         self.episode_num_steps = int(
             self.episode_total_time / self.action_sampling_period
         )
-        self.reset_total_time = 3.0
+        self.reset_total_time = 4.0
         self.reset_num_steps = int(self.reset_total_time / self.action_sampling_period)
 
         self.action_init = self.get_safe_action(self.state_init)
@@ -1094,16 +1094,10 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         p_coeff = 1.0
         d_coeff = 1.0
 
-        normal_scale = 4.0
-
         angle = observation[0, 0]
         angle_velocity = observation[0, 1]
 
-        action = (
-            -p_coeff * (-0.8 - np.cos(angle))
-            - d_coeff * angle_velocity
-            + np.random.normal(scale=normal_scale)
-        )
+        action = -p_coeff * (-1 - np.cos(angle)) - d_coeff * angle_velocity
 
         return action
 
