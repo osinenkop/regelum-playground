@@ -475,7 +475,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         # 4. CALFQ
         # Probability to take CALF action even when CALF constraints are not satisfied
         self.relax_probability = 0.75
-        self.relax_probability_fading_factor = 0.2
+        self.relax_probability_fading_factor = 0.0
         self.critic_low_kappa_coeff = 1e-2
         self.critic_up_kappa_coeff = 1e4
         # Nominal desired step-wise decay coeff of critic
@@ -569,6 +569,8 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
         self.calf_count = 0
         self.safe_count = 0
+
+        self.relax_probability_init = self.relax_probability
 
         # Debugging
         self.debug_print_counter = 0
@@ -1014,7 +1016,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
     def calf_filter(self, critic_weight_tensor, observation, action):
         """
         If CALF constraints are satisfied, put the specified action through and update the CALF's state
-        (safe weights, observation and action).
+        (safe weights, observation, action).
         Otherwise, return a safe action, do not update the CALF's state.
 
         """
@@ -1124,13 +1126,18 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                 use_grad_descent=True,
             )
 
+            # Apply relax probability annealing
+            self.relax_probability = self.relax_probability * self.clock ** (
+                -self.relax_probability_fading_factor
+            )
+
             # Apply CALF filter that checks constraint satisfaction and updates the CALF's state
             action = self.calf_filter(
                 self.critic_weight_tensor, observation, new_action
             )
 
             # DEBUG
-            action = self.get_safe_action(observation)
+            # action = self.get_safe_action(observation)
             # action = self.get_reset_action(observation)
             # /DEBUG
 
@@ -1172,6 +1179,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                 self.update_calf_state(
                     self.critic_weight_tensor_safe, observation, action
                 )
+                self.relax_probability = self.relax_probability_init
             self.reset_clock += 1
 
         # Apply action bounds
