@@ -949,16 +949,16 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
         """
 
-        result = self.critic_model(
-            critic_weight_tensor, observation, self.action_curr + action_change
-        )
+        # result = self.critic_model(
+        #     critic_weight_tensor, observation, self.action_curr + action_change
+        # )
 
         # Using nominal stabilizer as a pivot
-        # result = self.critic_model(
-        #     critic_weight_tensor,
-        #     observation,
-        #     self.get_safe_action(observation) + action_change,
-        # )
+        result = self.critic_model(
+            critic_weight_tensor,
+            observation,
+            self.get_safe_action(observation) + action_change,
+        )
 
         result += self.action_change_penalty_coeff * norm(action_change)
 
