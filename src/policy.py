@@ -449,14 +449,11 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         system: Union[InvertedPendulum, InvertedPendulumWithFriction],
     ):
         super().__init__()
-        # Initialization of RL agent
         # 1. Common agent tuning settings
         self.run_obj_param_tensor = np.diag([1.0, 1.0, 0.0])
-        self.episode_total_time = 5.0
-
+        self.episode_total_time = 8.0
         # 2. Actor
         self.action_change_penalty_coeff = 0.0
-
         # 3. Critic
         self.critic_learn_rate = 0.1
         self.critic_num_grad_steps = 20
@@ -464,16 +461,18 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         self.buffer_size = 20
         self.critic_struct = "quad-mix"
         self.critic_weight_change_penalty_coeff = 0.0
-
         # 4. CALFQ
-        # Probability to take CALF action even when CALF constraints are not satisfied
-        self.relax_probability = 0.75
+        self.safe_only = False
+        self.relax_probability = 0.75  # Probability to take CALF action even when CALF constraints are not satisfied
         self.relax_probability_fading_factor = 0.0
+        self.goal_treshold = 0.4
         self.critic_low_kappa_coeff = 1e-2
-        self.critic_up_kappa_coeff = 1e4
-        # Nominal desired step-wise decay coeff of critic
-        self.critic_desired_decay_coeff = 1e-4
-        # Maximal desired step-wise decay coeff of critic
+        self.critic_up_kappa_coeff = (
+            1e4  # Nominal desired step-wise decay coeff of critic
+        )
+        self.critic_desired_decay_coeff = (
+            1e-4  # Maximal desired step-wise decay coeff of critic
+        )
         self.critic_max_desired_decay_coeff = 1e-1
         self.calf_penalty_coeff = 0.5
 
@@ -495,6 +494,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         self.clock = 1
         self.reset_clock = 1
         self.episode_count = 0
+        self.sum_final_score = 0.0
 
         self.action_sampling_period = 0.01  # Taken from common/inv_pendulum config
 
@@ -962,6 +962,9 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
         result += self.action_change_penalty_coeff * norm(action_change)
 
+        # Use a code like this for prediction
+        # x = self.system._compute_state_dynamics(0, observation.squeeze(), action_change)
+
         return result
 
     def get_optimized_action(self, critic_weight_tensor, observation):
@@ -1124,14 +1127,17 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                 self.action_curr,
                 use_calf_constraints=False,
                 use_grad_descent=True,
+                use_kappa_constraint=True,
+                check_persistence_of_excitation=True,
             )
 
             # Apply relax probability annealing
             self.relax_probability = self.relax_probability * self.clock ** (
                 -self.relax_probability_fading_factor
             )
+            # Specific for pendulum
             angle = observation[0, 0]
-            if 1 - np.cos(angle) <= 0.2:
+            if 1 - np.cos(angle) <= self.goal_treshold:
                 self.relax_probability = 0.0
 
             # Apply CALF filter that checks constraint satisfaction and updates the CALF's state
@@ -1140,7 +1146,8 @@ class InvertedPendulumRcognitaCALFQ(Policy):
             )
 
             # DEBUG
-            # action = self.get_safe_action(observation)
+            if self.safe_only:
+                action = self.get_safe_action(observation)
             # action = self.get_reset_action(observation)
             # /DEBUG
 
@@ -1166,12 +1173,18 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         else:
 
             if self.reset_clock == 1:
+                self.sum_final_score += self.score
                 print(
                     "--------------------------EPISODE ",
                     self.episode_count,
                     " ENDED--------------------------",
                 )
                 print("--------------------------FINAL SCORE: %4.2f" % -self.score)
+                print(
+                    "--------------------------MEAN FINAL SCORE: %4.2f"
+                    % (-self.sum_final_score / self.episode_count)
+                )
+
                 self.score = 0
 
             if self.reset_clock < self.reset_num_steps:
