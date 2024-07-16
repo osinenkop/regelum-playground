@@ -456,36 +456,60 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         self.pd_coeffs = pd_coeffs
         self.system = system
 
-        # rc
-        # Initialization of CALFQ
+        # Initialization of RL agent
+        # 1. Common agent tuning settings
+        self.run_obj_param_tensor = np.diag([1.0, 1.0, 0.0])
+        self.episode_total_time = 5.0
 
+        # 2. Actor
+        self.action_change_penalty_coeff = 0.0
+
+        # 3. Critic
+        self.critic_learn_rate = 0.1
+        self.critic_num_grad_steps = 20
+        self.discount_factor = 1.0
+        self.buffer_size = 20
+        self.critic_struct = "quad-mix"
+        self.critic_weight_change_penalty_coeff = 0.0
+
+        # 4. CALFQ
+        # Probability to take CALF action even when CALF constraints are not satisfied
+        self.relax_probability = 0.75
+        self.relax_probability_fading_factor = 0.2
+        self.critic_low_kappa_coeff = 1e-2
+        self.critic_up_kappa_coeff = 1e4
+        # Nominal desired step-wise decay coeff of critic
+        self.critic_desired_decay_coeff = 1e-4
+        # Maximal desired step-wise decay coeff of critic
+        self.critic_max_desired_decay_coeff = 1e-1
+        self.calf_penalty_coeff = 0.5
+
+        # Normally, all the below settings are not for agent tuning
         self.dim_state = 2
         self.dim_action = 1
         self.dim_observation = self.dim_state
-
         # Taken from initial_conditions config
         self.state_init = np.array([[np.pi, 1]])
         self.observation_init = self.state_init
+        self.score = 0
+        self.clock = 1
+        self.reset_clock = 1
+        self.episode_count = 0
+
+        self.action_sampling_period = 0.01  # Taken from common/inv_pendulum config
+
+        self.in_state_of_reset = False
+        self.episode_num_steps = int(
+            self.episode_total_time / self.action_sampling_period
+        )
+        self.reset_total_time = 4.0
+        self.reset_num_steps = int(self.reset_total_time / self.action_sampling_period)
+
         self.action_init = self.get_safe_action(self.state_init)
         self.action_curr = self.action_init
 
-        self.action_sampling_time = 0.01  # Taken from common/inv_pendulum config
-
-        self.run_obj_param_tensor = np.diag([1.0, 1.0, 0.0])
-
-        self.discount_factor = 1.0
-
-        self.buffer_size = 20
         self.action_buffer = repmat(self.action_init, self.buffer_size, 1)
         self.observation_buffer = repmat(self.observation_init, self.buffer_size, 1)
-
-        self.score = 0
-
-        # Critic
-        self.critic_learn_rate = 0.1
-        self.critic_num_grad_steps = 20
-
-        self.critic_struct = "quad-mix"
 
         critic_big_number = 1e5
 
@@ -524,13 +548,6 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         )
         self.critic_weight_tensor = self.critic_weight_tensor_init
 
-        self.critic_weight_change_penalty_coeff = 0.0
-
-        # CALFQ
-
-        # Probability to take CALF action even when CALF constraints are not satisfied
-        self.relax_probability = 0.99
-
         self.critic_weight_tensor_safe = self.critic_weight_tensor_init
         self.observation_safe = self.observation_init
         self.action_safe = self.action_init
@@ -538,29 +555,23 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         # self.critic_weight_tensor_init_safe = self.critic_weight_tensor_init
         # self.critic_weight_tensor_buffer_safe = []
 
-        self.critic_low_kappa_coeff = 1e-2
-        self.critic_up_kappa_coeff = 1e4
-        # Nominal desired step-wise decay of critic
-        self.critic_desired_decay = 1e-4 * self.action_sampling_time
-        # Maximal desired step-wise decay of critic
-        self.critic_max_desired_decay = 1e-1 * self.action_sampling_time
-
         self.action_buffer_safe = np.zeros([self.buffer_size, self.dim_action])
         self.observation_buffer_safe = np.zeros(
             [self.buffer_size, self.dim_observation]
         )
 
-        self.calf_penalty_coeff = 0.5
+        self.critic_desired_decay = (
+            self.critic_desired_decay_coeff * self.action_sampling_period
+        )
+        self.critic_max_desired_decay = (
+            self.critic_max_desired_decay_coeff * self.action_sampling_period
+        )
 
         self.calf_count = 0
         self.safe_count = 0
 
         # Debugging
         self.debug_print_counter = 0
-
-        # /rc
-
-    # rc
 
     def run_obj(self, observation, action):
 
@@ -936,9 +947,20 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
         """
 
-        return self.critic_model(
-            critic_weight_tensor, observation, self.action_curr + action_change
+        # result = self.critic_model(
+        #     critic_weight_tensor, observation, self.action_curr + action_change
+        # )
+
+        # Using nominal stabilizer as a pivot
+        result = self.critic_model(
+            critic_weight_tensor,
+            observation,
+            self.get_safe_action(observation) + action_change,
         )
+
+        result += self.action_change_penalty_coeff * norm(action_change)
+
+        return result
 
     def get_optimized_action(self, critic_weight_tensor, observation):
 
@@ -977,6 +999,18 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
         return self.action_curr + action_change
 
+    def update_calf_state(self, critic_weight_tensor, observation, action):
+        self.critic_weight_tensor_safe = critic_weight_tensor
+        self.observation_safe = observation
+        self.action_safe = action
+
+        self.observation_buffer_safe = push_vec(
+            self.observation_buffer_safe, observation
+        )
+        self.action_buffer_safe = push_vec(self.action_buffer_safe, action)
+
+        self.calf_count += 1
+
     def calf_filter(self, critic_weight_tensor, observation, action):
         """
         If CALF constraints are satisfied, put the specified action through and update the CALF's state
@@ -1004,16 +1038,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
             or sample <= self.relax_probability
         ):
 
-            self.critic_weight_tensor_safe = critic_weight_tensor
-            self.observation_safe = observation
-            self.action_safe = action
-
-            self.observation_buffer_safe = push_vec(
-                self.observation_buffer_safe, observation
-            )
-            self.action_buffer_safe = push_vec(self.action_buffer_safe, action)
-
-            self.calf_count += 1
+            self.update_calf_state(critic_weight_tensor, observation, action)
 
             return action
 
@@ -1049,36 +1074,105 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
         return action
 
-    # /rc
+    def get_reset_action(self, observation):
+        """
+        This controller drives the system to the initial state. Currently implemented for pendulum.
+
+        """
+
+        p_coeff = 1.0
+        d_coeff = 1.0
+
+        angle = observation[0, 0]
+        angle_velocity = observation[0, 1]
+
+        action = -p_coeff * (-1 - np.cos(angle)) - d_coeff * angle_velocity
+
+        return action
 
     def get_action(self, observation: np.ndarray) -> np.ndarray:
 
-        # Update replay buffers
-        self.action_buffer = push_vec(self.action_buffer, self.action_curr)
-        self.observation_buffer = push_vec(self.observation_buffer, observation)
+        # When episode ended
+        if self.clock % self.episode_num_steps == 0 and not self.in_state_of_reset:
+            self.in_state_of_reset = True
+            self.reset_clock = 1
+            self.episode_count += 1
+            self.clock = 1
 
-        # Update score (cumulative objective)
-        self.score += (
-            self.run_obj(observation, self.action_curr) * self.action_sampling_time
-        )
+        if not self.in_state_of_reset:
 
-        # Update action
-        new_action = self.get_optimized_action(self.critic_weight_tensor, observation)
+            # Update replay buffers
+            self.action_buffer = push_vec(self.action_buffer, self.action_curr)
+            self.observation_buffer = push_vec(self.observation_buffer, observation)
 
-        # Compute new critic weights
-        self.critic_weight_tensor = self.get_optimized_critic_weights(
-            observation,
-            self.action_curr,
-            use_calf_constraints=False,
-            use_grad_descent=True,
-        )
+            # Update score (cumulative objective)
+            self.score += (
+                self.run_obj(observation, self.action_curr)
+                * self.action_sampling_period
+            )
 
-        # Apply CALF filter that checks constraint satisfaction and updates the CALF's state
-        action = self.calf_filter(self.critic_weight_tensor, observation, new_action)
+            # Update action
+            new_action = self.get_optimized_action(
+                self.critic_weight_tensor, observation
+            )
 
-        # DEBUG
-        # action = self.get_safe_action(observation)
-        # /DEBUG
+            # Compute new critic weights
+            self.critic_weight_tensor = self.get_optimized_critic_weights(
+                observation,
+                self.action_curr,
+                use_calf_constraints=False,
+                use_grad_descent=True,
+            )
+
+            # Apply CALF filter that checks constraint satisfaction and updates the CALF's state
+            action = self.calf_filter(
+                self.critic_weight_tensor, observation, new_action
+            )
+
+            # DEBUG
+            action = self.get_safe_action(observation)
+            # action = self.get_reset_action(observation)
+            # /DEBUG
+
+            # DEBUG
+            np.set_printoptions(precision=3)
+
+            if self.debug_print_counter % 50 == 0:
+                print(
+                    "--DEBUG-- reward: %4.2f score: %4.2f"
+                    % (-self.run_obj(observation, action), -self.score)
+                )
+                print("--DEBUG-- critic weights:", self.critic_weight_tensor)
+                print("--DEBUG-- CALF counter:", self.calf_count)
+                print("--DEBUG-- Safe counter:", self.safe_count)
+
+            self.debug_print_counter += 1
+
+            # /DEBUG
+
+            # Update internal step counter
+            self.clock += 1
+
+        else:
+
+            if self.reset_clock == 1:
+                print(
+                    "--------------------------EPISODE ",
+                    self.episode_count,
+                    " ENDED--------------------------",
+                )
+                print("--------------------------FINAL SCORE: %4.2f" % -self.score)
+                self.score = 0
+
+            if self.reset_clock < self.reset_num_steps:
+                action = self.get_reset_action(observation)
+            else:
+                self.in_state_of_reset = False
+                action = self.action_init
+                self.update_calf_state(
+                    self.critic_weight_tensor_safe, observation, action
+                )
+            self.reset_clock += 1
 
         # Apply action bounds
         action = np.clip(
@@ -1092,21 +1186,5 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
         # Update current action
         self.action_curr = action
-
-        # DEBUG
-        np.set_printoptions(precision=3)
-
-        if self.debug_print_counter % 50 == 0:
-            print(
-                "--DEBUG-- reward: %4.2f score: %4.2f"
-                % (-self.run_obj(observation, action), -self.score)
-            )
-            print("--DEBUG-- critic weights:", self.critic_weight_tensor)
-            print("--DEBUG-- CALF counter:", self.calf_count)
-            print("--DEBUG-- Safe counter:", self.safe_count)
-
-        self.debug_print_counter += 1
-
-        # /DEBUG
 
         return action
