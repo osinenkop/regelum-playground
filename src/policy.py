@@ -455,7 +455,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         # 2. Actor
         self.action_change_penalty_coeff = 0.0
         # 3. Critic
-        self.critic_learn_rate = 0.001
+        self.critic_learn_rate = 0.0005
         self.critic_num_grad_steps = 20
         self.discount_factor = 1.0
         self.buffer_size = 20
