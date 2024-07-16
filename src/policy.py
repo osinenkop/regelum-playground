@@ -449,13 +449,6 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         system: Union[InvertedPendulum, InvertedPendulumWithFriction],
     ):
         super().__init__()
-        self.gain = gain
-        self.action_min = action_min
-        self.action_max = action_max
-        self.switch_loc = switch_loc
-        self.pd_coeffs = pd_coeffs
-        self.system = system
-
         # Initialization of RL agent
         # 1. Common agent tuning settings
         self.run_obj_param_tensor = np.diag([1.0, 1.0, 0.0])
@@ -485,6 +478,13 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         self.calf_penalty_coeff = 0.5
 
         # Normally, all the below settings are not for agent tuning
+        self.gain = gain
+        self.action_min = action_min
+        self.action_max = action_max
+        self.switch_loc = switch_loc
+        self.pd_coeffs = pd_coeffs
+        self.system = system
+
         self.dim_state = 2
         self.dim_action = 1
         self.dim_observation = self.dim_state
@@ -949,16 +949,16 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
         """
 
-        # result = self.critic_model(
-        #     critic_weight_tensor, observation, self.action_curr + action_change
-        # )
+        result = self.critic_model(
+            critic_weight_tensor, observation, self.action_curr + action_change
+        )
 
         # Using nominal stabilizer as a pivot
-        result = self.critic_model(
-            critic_weight_tensor,
-            observation,
-            self.get_safe_action(observation) + action_change,
-        )
+        # result = self.critic_model(
+        #     critic_weight_tensor,
+        #     observation,
+        #     self.get_safe_action(observation) + action_change,
+        # )
 
         result += self.action_change_penalty_coeff * norm(action_change)
 
@@ -1130,6 +1130,9 @@ class InvertedPendulumRcognitaCALFQ(Policy):
             self.relax_probability = self.relax_probability * self.clock ** (
                 -self.relax_probability_fading_factor
             )
+            angle = observation[0, 0]
+            if 1 - np.cos(angle) <= 0.2:
+                self.relax_probability = 0.0
 
             # Apply CALF filter that checks constraint satisfaction and updates the CALF's state
             action = self.calf_filter(
