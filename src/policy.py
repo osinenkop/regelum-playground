@@ -455,7 +455,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         # 2. Actor
         self.action_change_penalty_coeff = 0.0
         # 3. Critic
-        self.critic_learn_rate = 0.1
+        self.critic_learn_rate = 0.001
         self.critic_num_grad_steps = 20
         self.discount_factor = 1.0
         self.buffer_size = 20
@@ -546,6 +546,13 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         self.critic_weight_tensor_init = to_row_vec(
             np.random.uniform(1, critic_big_number / 10, size=self.dim_critic)
         )
+
+        # Gives a positive-definite initial guess
+        if self.critic_struct == "quad-mix":
+            self.critic_weight_tensor_init = to_row_vec(
+                np.array([7196.45, 323.51, 34839.243, -97235.899, 13453.018])
+            )
+
         self.critic_weight_tensor = self.critic_weight_tensor_init
 
         self.critic_weight_tensor_safe = self.critic_weight_tensor_init
@@ -860,7 +867,8 @@ class InvertedPendulumRcognitaCALFQ(Policy):
             self.critic_weight_min, self.critic_weight_max, keep_feasible=True
         )
 
-        critic_weight_tensor_change_start_guess = to_row_vec(np.zeros(self.dim_critic))
+        # Is deliberately 1D specifically for sp.optimize
+        critic_weight_tensor_change_start_guess = np.zeros(self.dim_critic)
 
         if use_calf_constraints:
             if use_grad_descent:
@@ -920,7 +928,9 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                 )
             else:
                 critic_weight_tensor_change = minimize(
-                    self.critic_obj(critic_weight_tensor_change),
+                    lambda critic_weight_tensor_change: self.critic_obj(
+                        critic_weight_tensor_change
+                    ),
                     critic_weight_tensor_change_start_guess,
                     method=critic_opt_method,
                     tol=1e-3,
@@ -1160,6 +1170,15 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                     % (-self.run_obj(observation, action), -self.score)
                 )
                 print("--DEBUG-- critic weights:", self.critic_weight_tensor)
+                print(
+                    "--DEBUG-- critic:",
+                    np.round(
+                        self.critic_model(
+                            self.critic_weight_tensor, observation, action
+                        ),
+                        1,
+                    ),
+                )
                 print("--DEBUG-- CALF counter:", self.calf_count)
                 print("--DEBUG-- Safe counter:", self.safe_count)
 
