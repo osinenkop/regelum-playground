@@ -822,7 +822,11 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         #     return self.critic_model(critic_weight_tensor, observation, action)
 
         if use_grad_descent:
-            critic_weight_tensor = self.critic_weight_tensor
+
+            # Usage of np.array here forces passing by value due to
+            # new instantiation. It is needed since Python
+            # passes containers (an array for example) by reference by default
+            critic_weight_tensor = np.array(self.critic_weight_tensor)
 
             for _ in range(self.critic_num_grad_steps):
 
@@ -872,11 +876,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                         )
                     )
 
-                # For some reasons unkown, this line leads to unexpected results.
-                # When doing just one gradient step, this line should have no effect.
-                # It, however, does.
-                # Could be trouble with multi-threading or rehydra?
-                # critic_weight_tensor += critic_weight_tensor_change
+                critic_weight_tensor += critic_weight_tensor_change
 
         else:
 
