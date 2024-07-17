@@ -451,11 +451,11 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         super().__init__()
         # 1. Common agent tuning settings
         self.run_obj_param_tensor = np.diag([1.0, 1.0, 0.0])
-        self.episode_total_time = 9.0
+        self.episode_total_time = 8.0
         # 2. Actor
         self.action_change_penalty_coeff = 0.0
         # 3. Critic
-        self.critic_learn_rate = 0.0001
+        self.critic_learn_rate = 0.0005
         self.critic_num_grad_steps = 20
         self.discount_factor = 1.0
         self.buffer_size = 20
@@ -498,7 +498,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         self.episode_num_steps = int(
             self.episode_total_time / self.action_sampling_period
         )
-        self.reset_total_time = 3.0
+        self.reset_total_time = 4.0
         self.reset_num_steps = int(self.reset_total_time / self.action_sampling_period)
 
         self.action_init = self.get_safe_action(self.state_init)
@@ -975,7 +975,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
 
     def get_optimized_action(self, critic_weight_tensor, observation):
 
-        actor_opt_method = "trust-constr"
+        actor_opt_method = "SLSQP"
         if actor_opt_method == "trust-constr":
             actor_opt_options = {
                 "maxiter": 40,
@@ -1094,13 +1094,13 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         p_coeff = 1.0
         d_coeff = 1.0
 
-        normal_scale = 4.0
+        normal_scale = 1.0
 
         angle = observation[0, 0]
         angle_velocity = observation[0, 1]
 
         action = (
-            -p_coeff * (-0.8 - np.cos(angle))
+            -p_coeff * (-1.0 - np.cos(angle))
             - d_coeff * angle_velocity
             + np.random.normal(scale=normal_scale)
         )
