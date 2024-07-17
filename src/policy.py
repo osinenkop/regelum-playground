@@ -451,7 +451,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         super().__init__()
         # 1. Common agent tuning settings
         self.run_obj_param_tensor = np.diag([1.0, 1.0, 0.0])
-        self.episode_total_time = 8.0
+        self.episode_total_time = 20.0
         # 2. Actor
         self.action_change_penalty_coeff = 0.0
         # 3. Critic
