@@ -8,7 +8,7 @@ import scipy as sp
 
 from typing import Union
 from numpy.core.multiarray import array
-
+from pathlib import Path
 from numpy.matlib import repmat
 from numpy.linalg import norm
 
@@ -24,6 +24,8 @@ from src.system import (
     InvertedPendulumWithFriction,
     InvertedPendulumWithMotor,
 )
+
+import torch
 
 from .utilities import uptria2vec
 from .utilities import to_row_vec
@@ -52,6 +54,53 @@ def hard_switch(signal1: float, signal2: float, condition: bool):
 
 def pd_based_on_sin(observation, pd_coeffs=[20, 10]):
     return -pd_coeffs[0] * np.sin(observation[0, 0]) - pd_coeffs[1] * observation[0, 1]
+
+
+class InvertedPendulumNN(Policy):
+    def __init__(self, checkpoint_path: str):
+        super().__init__()
+        self.model_features = torch.nn.Sequential(
+            torch.nn.Linear(3, 64),
+            torch.nn.Tanh(),
+            torch.nn.Linear(64, 64),
+            torch.nn.Tanh(),
+        )
+
+        self.model_action = torch.nn.Linear(64, 1, bias=False)
+
+        self.model_features.load_state_dict(
+            torch.load(Path(checkpoint_path) / "model_features.pth")
+        )
+        self.model_action.load_state_dict(
+            torch.load(Path(checkpoint_path) / "model_action.pth")
+        )
+        self.reward = 0.0
+        self.n_steps = 0.0
+
+    def get_action(self, observation: np.ndarray):
+        self.reward -= 0.01 * (
+            (1 - np.cos(observation[0, 0])) ** 2 + observation[0, 1] ** 2
+        )
+        self.n_steps += 1
+
+        if self.n_steps % 100 == 0:
+            print("NN Policy: ", self.n_steps)
+            print("Reward: ", self.reward)
+
+        with torch.no_grad():
+            features = self.model_features(
+                torch.FloatTensor(
+                    np.hstack(
+                        (
+                            np.cos(observation[None, :, 0]),
+                            np.sin(observation[None, :, 0]),
+                            observation[None, :, 1],
+                        )
+                    )
+                )
+            )
+            action = self.model_action(features)
+            return action.cpu().numpy()
 
 
 class InvPendulumPolicyPD(Policy):
@@ -529,7 +578,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         # CALFQ
 
         # Probability to take CALF action even when CALF constraints are not satisfied
-        self.relax_probability = 0.99
+        self.relax_probability = 0.45
 
         self.critic_weight_tensor_safe = self.critic_weight_tensor_init
         self.observation_safe = self.observation_init

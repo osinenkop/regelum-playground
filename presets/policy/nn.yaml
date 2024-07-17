@@ -1,0 +1,3 @@
+_target_: src.policy.InvertedPendulumNN
+
+checkpoint_path: /mnt/abolychev/goal-agent-cleanrl/checkpoints/ppo/quanser-pendulum
