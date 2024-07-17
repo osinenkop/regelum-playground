@@ -1,1 +1,7 @@
+# Original for testing of CALFQ
+
 state_init: = np.array([[np.pi, 1]])
+
+# For testing of the pendulum reset controller
+
+# state_init: = np.array([[-np.pi/4, 1]])
