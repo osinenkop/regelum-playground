@@ -456,7 +456,8 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         self.action_change_penalty_coeff = 0.0
         # 3. Critic
         self.critic_learn_rate = 0.0005
-        self.critic_num_grad_steps = 20
+        # critic_num_grad_steps>1 may lead to unexpected results. Possibly rehydra glitch
+        self.critic_num_grad_steps = 1
         self.discount_factor = 1.0
         self.buffer_size = 20
         self.critic_struct = "quad-mix"
@@ -547,6 +548,12 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         if self.critic_struct == "quad-mix":
             self.critic_weight_tensor_init = to_row_vec(
                 np.array([7196.45, 323.51, 34839.243, -97235.899, 13453.018])
+            )
+
+        # Gives a positive-definite initial guess for quadratic model
+        if self.critic_struct == "quadratic":
+            self.critic_weight_tensor_init = to_row_vec(
+                np.array([5488.586, 7152.178, 6028.031, 5449.287, 4237.124, 6459.295])
             )
 
         self.critic_weight_tensor = self.critic_weight_tensor_init
@@ -803,7 +810,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         observation,
         action,
         use_grad_descent=True,
-        use_calf_constraints=True,
+        use_decay_constraint=True,
         use_kappa_constraint=False,
         check_persistence_of_excitation=False,
     ):
@@ -814,67 +821,24 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         #     # kappa_low(||s_t||) <= Q^w (s_t, a_t) <= kappa_up(||s_t||)
         #     return self.critic_model(critic_weight_tensor, observation, action)
 
-        # Optimization method of critic. Methods that respect constraints: BFGS, L-BFGS-B, SLSQP,
-        # trust-constr, Powell
-        critic_opt_method = "SLSQP"
-        if critic_opt_method == "trust-constr":
-            # 'disp': True, 'verbose': 2}
-            critic_opt_options = {"maxiter": 40, "disp": False}
-        else:
-            critic_opt_options = {
-                "maxiter": 40,
-                "maxfev": 80,
-                "disp": False,
-                "adaptive": True,
-                "xatol": 1e-3,
-                "fatol": 1e-3,
-            }  # 'disp': True, 'verbose': 2}
+        if use_grad_descent:
+            critic_weight_tensor = self.critic_weight_tensor
 
-        critic_low_kappa = self.critic_low_kappa_coeff * norm(observation) ** 2
-        critic_up_kappa = self.critic_up_kappa_coeff * norm(observation) ** 2
+            for _ in range(self.critic_num_grad_steps):
 
-        constraints = []
-        constraints.append(
-            sp.optimize.NonlinearConstraint(
-                lambda critic_weight_tensor: self.calf_diff(
-                    critic_weight_tensor=critic_weight_tensor,
-                    observation=observation,
-                    action=action,
-                ),
-                -self.critic_max_desired_decay,
-                -self.critic_desired_decay,
-            )
-        )
-        if use_kappa_constraint:
+                critic = self.critic_model(critic_weight_tensor, observation, action)
 
-            constraints.append(
-                sp.optimize.NonlinearConstraint(
-                    lambda critic_weight_tensor: self.critic_model(
-                        critic_weight_tensor=critic_weight_tensor,
-                        observation=observation,
-                        action=action,
-                    ),
-                    critic_low_kappa,
-                    critic_up_kappa,
+                critic_weight_tensor_change = (
+                    -self.critic_learn_rate * self.critic_obj_grad(critic_weight_tensor)
                 )
-            )
 
-        bounds = sp.optimize.Bounds(
-            self.critic_weight_min, self.critic_weight_max, keep_feasible=True
-        )
+                if use_kappa_constraint:
 
-        # Is deliberately 1D specifically for sp.optimize
-        critic_weight_tensor_change_start_guess = np.zeros(self.dim_critic)
-
-        if use_calf_constraints:
-            if use_grad_descent:
-
-                critic_weight_tensor = self.critic_weight_tensor
-
-                for _ in range(self.critic_num_grad_steps):
-
-                    critic = self.critic_model(
-                        critic_weight_tensor, observation, action
+                    critic_low_kappa = (
+                        self.critic_low_kappa_coeff * norm(observation) ** 2
+                    )
+                    critic_up_kappa = (
+                        self.critic_up_kappa_coeff * norm(observation) ** 2
                     )
 
                     # Simple ReLU penalties for bounding kappas
@@ -888,12 +852,8 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                     else:
                         relu_kappa_low_grad = 1
 
-                    critic_weight_tensor_change = -self.critic_learn_rate * (
-                        self.critic_obj_grad(critic_weight_tensor)
-                        + self.calf_decay_constraint_penalty_grad(
-                            self.critic_weight_tensor, observation, action
-                        )
-                        + self.calf_penalty_coeff
+                    critic_weight_tensor_change += -self.critic_learn_rate * (
+                        +self.calf_penalty_coeff
                         * self.critic_model_grad(
                             critic_weight_tensor, observation, action
                         )
@@ -904,35 +864,85 @@ class InvertedPendulumRcognitaCALFQ(Policy):
                         )
                         * relu_kappa_up_grad
                     )
-                    critic_weight_tensor += critic_weight_tensor_change
 
-            else:
-                critic_weight_tensor_change = minimize(
-                    self.critic_obj(critic_weight_tensor_change),
-                    critic_weight_tensor_change_start_guess,
-                    method=critic_opt_method,
-                    tol=1e-3,
-                    bounds=bounds,
-                    constraints=constraints,
-                    options=critic_opt_options,
-                ).x
+                if use_decay_constraint:
+                    critic_weight_tensor_change += -self.critic_learn_rate * (
+                        self.calf_decay_constraint_penalty_grad(
+                            self.critic_weight_tensor, observation, action
+                        )
+                    )
+
+                # For some reasons unkown, this line leads to unexpected results.
+                # When doing just one gradient step, this line should have no effect.
+                # It, however, does.
+                # Could be trouble with multi-threading or rehydra?
+                # critic_weight_tensor += critic_weight_tensor_change
+
         else:
-            if use_grad_descent:
-                critic_weight_tensor_change = (
-                    -self.critic_learn_rate
-                    * self.critic_obj_grad(self.critic_weight_tensor)
-                )
+
+            # Optimization method of critic. Methods that respect constraints: BFGS, L-BFGS-B, SLSQP,
+            # trust-constr, Powell
+            critic_opt_method = "SLSQP"
+            if critic_opt_method == "trust-constr":
+                # 'disp': True, 'verbose': 2}
+                critic_opt_options = {"maxiter": 40, "disp": False}
             else:
-                critic_weight_tensor_change = minimize(
-                    lambda critic_weight_tensor_change: self.critic_obj(
-                        critic_weight_tensor_change
-                    ),
-                    critic_weight_tensor_change_start_guess,
-                    method=critic_opt_method,
-                    tol=1e-3,
-                    bounds=bounds,
-                    options=critic_opt_options,
-                ).x
+                critic_opt_options = {
+                    "maxiter": 40,
+                    "maxfev": 80,
+                    "disp": False,
+                    "adaptive": True,
+                    "xatol": 1e-3,
+                    "fatol": 1e-3,
+                }  # 'disp': True, 'verbose': 2}
+
+            constraints = []
+
+            if use_decay_constraint:
+                constraints.append(
+                    sp.optimize.NonlinearConstraint(
+                        lambda critic_weight_tensor: self.calf_diff(
+                            critic_weight_tensor=critic_weight_tensor,
+                            observation=observation,
+                            action=action,
+                        ),
+                        -self.critic_max_desired_decay,
+                        -self.critic_desired_decay,
+                    )
+                )
+
+            if use_kappa_constraint:
+
+                critic_low_kappa = self.critic_low_kappa_coeff * norm(observation) ** 2
+                critic_up_kappa = self.critic_up_kappa_coeff * norm(observation) ** 2
+                constraints.append(
+                    sp.optimize.NonlinearConstraint(
+                        lambda critic_weight_tensor: self.critic_model(
+                            critic_weight_tensor=critic_weight_tensor,
+                            observation=observation,
+                            action=action,
+                        ),
+                        critic_low_kappa,
+                        critic_up_kappa,
+                    )
+                )
+
+            bounds = sp.optimize.Bounds(
+                self.critic_weight_min, self.critic_weight_max, keep_feasible=True
+            )
+
+            # Is deliberately 1D specifically for sp.optimize
+            critic_weight_tensor_change_start_guess = np.zeros(self.dim_critic)
+
+            critic_weight_tensor_change = minimize(
+                self.critic_obj,
+                critic_weight_tensor_change_start_guess,
+                method=critic_opt_method,
+                tol=1e-3,
+                bounds=bounds,
+                constraints=constraints,
+                options=critic_opt_options,
+            ).x
 
         if check_persistence_of_excitation:
             # Adjust the weight change by the replay condition number
@@ -1094,7 +1104,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         p_coeff = 1.0
         d_coeff = 1.0
 
-        normal_scale = 1.0
+        normal_scale = 0.1
 
         angle = observation[0, 0]
         angle_velocity = observation[0, 1]
@@ -1137,9 +1147,9 @@ class InvertedPendulumRcognitaCALFQ(Policy):
             self.critic_weight_tensor = self.get_optimized_critic_weights(
                 observation,
                 self.action_curr,
-                use_calf_constraints=False,
                 use_grad_descent=True,
-                use_kappa_constraint=True,
+                use_decay_constraint=False,
+                use_kappa_constraint=False,
                 check_persistence_of_excitation=True,
             )
 
