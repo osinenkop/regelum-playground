@@ -4,6 +4,7 @@
 - [Getting started](#getting-started)
    * [Installation requirements](#installation-requirements)
 - [Ready examples](#ready-examples)
+   * [(EXPERIMENTAL) Nominal controller for lunar lander](#calfq-lunar)
    * [(EXPERIMENTAL) CALF-Q controller for pendulum](#calfq-pendulum) 
    * [Proportional-derivative (PD) controller for pendulum](#proportional-derivative-pd-controller-for-pendulum)
    * [Energy-based controller for pendulum](#energy-based-controller-for-pendulum)
