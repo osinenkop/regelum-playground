@@ -53,7 +53,7 @@ pip install -r requirements.txt
 
 Below are examples with respective terminal run commands. 
 
-<!-- TOC --><a name="calfq-pendulum"></a>
+<!-- TOC --><a name="calfq-lunar"></a>
 ### (EXPERIMENTAL) Nominal controller for lunar lander
 ```shell
 python run.py policy=pid_lunar_lander system=lunar_lander --interactive --fps=10 scenario=calfq_scenario scenario.N_iterations=3
