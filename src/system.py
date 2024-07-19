@@ -3,14 +3,16 @@ from regelum.system import (
     InvertedPendulum,
     ThreeWheeledRobotKinematic,
     ThreeWheeledRobotDynamic,
+    LunarLander,
 )
+import numpy as np
 from regelum.animation import DefaultAnimation
 from .animation import (
     ThreeWheeledRobotAnimationWithNewLims,
     ThreeWheeledRobotAnimationWithSpot,
+    LunarLanderAnimationWithAdjustedAngle,
 )
 from regelum.callback import detach
-
 
 # In the following two classes we want to alter their respective animation callbacks, so we:
 # - detach the default animations
@@ -43,6 +45,18 @@ class MyThreeWheeledRobotKinematic(ThreeWheeledRobotKinematic):
 @DefaultAnimation.attach
 @detach
 class ThreeWheeledRobotKinematicWithSpot(MyThreeWheeledRobotKinematic): ...
+
+
+@LunarLanderAnimationWithAdjustedAngle.attach
+@DefaultAnimation.attach
+@detach
+class LunarLanderReferenced(LunarLander):
+    def _get_observation(self, time, state, inputs):
+        return state - rg.array(
+            np.array([0.0, 1.0, 0.0, 0.0, 0.0, 0.0]).reshape(-1, 1),
+            prototype=state,
+            _force_numeric=True,
+        )
 
 
 class InvertedPendulum(InvertedPendulum):

@@ -1,9 +1,10 @@
-from regelum.animation import ThreeWheeledRobotAnimation
+from regelum.animation import ThreeWheeledRobotAnimation, LunarLanderAnimation
 
 import matplotlib.pyplot as plt
 
 import omegaconf
 from pathlib import Path
+import numpy as np
 
 
 class ThreeWheeledRobotAnimationWithNewLims(ThreeWheeledRobotAnimation):
@@ -57,3 +58,15 @@ class ThreeWheeledRobotAnimationWithSpot(ThreeWheeledRobotAnimation):
     def lim(self, *args, **kwargs):
         self.ax.set_xlim(-1.5, 1.5)
         self.ax.set_ylim(-1.5, 1.5)
+
+
+class LunarLanderAnimationWithAdjustedAngle(LunarLanderAnimation):
+    def setup(self):
+        super().setup()
+
+    def on_trigger(self, _):
+        self.add_frame(
+            x=self.system_state[0],
+            y=self.system_state[1],
+            theta=self.system_state[2] + np.pi,
+        )

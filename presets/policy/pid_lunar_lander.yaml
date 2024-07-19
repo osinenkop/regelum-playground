@@ -1,0 +1,5 @@
+_target_: src.policy.LunarLanderPID
+
+state_init: $ initial_conditions.state_init
+pid_omega_parameters: = [80, 0, 20]
+pid_x_parameters: = [10, 0, 40]

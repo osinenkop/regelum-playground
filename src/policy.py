@@ -14,7 +14,7 @@ from numpy.linalg import norm
 
 from scipy.optimize import minimize
 
-from regelum.policy import Policy
+from regelum.policy import Policy, MemoryPIDPolicy
 from regelum.utils import rg
 from regelum import CasadiOptimizerConfig
 
@@ -485,6 +485,40 @@ class ThreeWheeledRobotDynamicMinGradCLF(ThreeWheeledRobotKinematicMinGradCLF):
         action = -self.gain * (force_and_moment - three_wheeled_robot_kin_action)
 
         return action
+
+
+class LunarLanderPID(Policy):
+    """Nominal PID scenario for lunar lander."""
+
+    def __init__(
+        self,
+        state_init,
+        pid_omega_parameters=None,
+        pid_x_parameters=None,
+    ):
+        super().__init__()
+        self.pid_omega = MemoryPIDPolicy(
+            *pid_omega_parameters,
+            setpoint=rg.array([0]),
+        )
+        self.pid_x = MemoryPIDPolicy(
+            *pid_x_parameters,
+            setpoint=rg.array([0]),
+        )
+        self.action = rg.array([0.0, 0.0]).reshape(1, 2)
+
+    def get_action(self, observation):
+        self.action[0, 0] = self.pid_omega.compute_signal(
+            rg.array([observation[0, 2]]),
+            error_derivative=rg.array([observation[0, 5]]),
+        ).reshape(-1) - rg.cos(observation[0, 2]) ** 2 * self.pid_x.compute_signal(
+            rg.array([observation[0, 0]]),
+            error_derivative=rg.array([observation[0, 3]]),
+        ).reshape(
+            -1
+        )
+
+        return self.action
 
 
 class InvertedPendulumRcognitaCALFQ(Policy):

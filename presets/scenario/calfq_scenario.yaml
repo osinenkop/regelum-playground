@@ -1,0 +1,17 @@
+_target_: regelum.scenario.Scenario
+
+name%%: nominal
+
+policy: ~ policy
+sampling_time: $ common.sampling_time
+running_objective: 
+  _target_: regelum.objective.RunningObjective
+  model:
+    _target_: regelum.model.ModelQuadLin
+    weights: = numpy.array([1, 0.1, 10, 0.1, 0.1, 0.1, 0., 0.])
+    quad_matrix_type: diagonal
+    is_with_linear_terms: False
+discount_factor: 1.0 
+simulator: ~ simulator
+observer: $ common.observer
+N_iterations: 2

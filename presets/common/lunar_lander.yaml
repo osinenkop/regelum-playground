@@ -1,0 +1,6 @@
+sampling_time: 0.01
+time_final: 4 
+
+
+reference: = [0., 1., 0., 0., 0., 0.]
+observer: = regelum.observer.ObserverReference(${.reference})
