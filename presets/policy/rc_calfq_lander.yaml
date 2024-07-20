@@ -1,0 +1,5 @@
+_target_: src.policy.LunarLanderRcognitaCALFQ
+
+state_init: $ initial_conditions.state_init
+pid_omega_parameters: = [180, 0, 120]
+pid_x_parameters: = [10, 0, 40]

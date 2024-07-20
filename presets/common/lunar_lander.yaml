@@ -1,5 +1,5 @@
-sampling_time: 0.01
-time_final: 4 
+sampling_time: 0.1
+time_final: 20.0 
 
 
 reference: = [0., 1., 0., 0., 0., 0.]

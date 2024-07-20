@@ -66,7 +66,7 @@ Create config for calf-q on lunar lander and paste the name of the config after 
 ### (EXPERIMENTAL) CALF-Q controller for pendulum
 
 ```shell
-python run.py policy=rc_calfq system=inv_pendulum --interactive --fps=10
+python run.py policy=rc_calfq_pendulum system=inv_pendulum --interactive --fps=10
 ```
 
 See `get_action`, there is a `# DEBUG` section where you can force nominal stabilizer for testing.

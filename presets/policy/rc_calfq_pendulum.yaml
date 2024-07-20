@@ -1,6 +1,6 @@
 _target_: src.policy.InvertedPendulumRcognitaCALFQ
 
-gain: 0.005
+gain: 0.03
 action_min: -0.1
 action_max: 0.1
 pd_coeffs: = [0.6, 0.2]
