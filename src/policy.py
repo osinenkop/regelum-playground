@@ -1352,7 +1352,7 @@ class LunarLanderRcognitaCALFQ(Policy):
         self.critic_struct = "quadratic"
         self.critic_weight_change_penalty_coeff = 1e4
         # 4. CALFQ
-        self.safe_only = False
+        self.safe_only = True
         self.relax_probability = 0.25  # Probability to take CALF action even when CALF constraints are not satisfied
         self.relax_probability_fading_factor = 0.0
         self.goal_treshold = 4.2
@@ -1383,7 +1383,7 @@ class LunarLanderRcognitaCALFQ(Policy):
         self.is_safe_landing = False
 
         # Taken from initial_conditions config for lunar lander
-        self.state_init = np.array([[3, 35.0, 2 * np.pi / 3.0, 0.0, 0.0, 0.0]])
+        self.state_init = np.array([[10.0, 35.0, 2 * np.pi / 3.0, 0.0, 0.0, 0.0]])
         self.observation_init = self.state_init
         self.score = 0
         self.clock = 1
