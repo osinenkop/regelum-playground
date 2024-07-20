@@ -1352,7 +1352,7 @@ class LunarLanderRcognitaCALFQ(Policy):
         self.critic_struct = "quadratic"
         self.critic_weight_change_penalty_coeff = 1e4
         # 4. CALFQ
-        self.safe_only = True
+        self.safe_only = False
         self.relax_probability = 0.25  # Probability to take CALF action even when CALF constraints are not satisfied
         self.relax_probability_fading_factor = 0.0
         self.goal_treshold = 4.2
