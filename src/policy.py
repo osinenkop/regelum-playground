@@ -1340,7 +1340,7 @@ class LunarLanderRcognitaCALFQ(Policy):
         super().__init__()
         self.action = rg.array([0.0, 0.0]).reshape(1, 2)
         # 1. Common agent tuning settings
-        self.run_obj_param_tensor = np.diag([10.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0])
+        self.run_obj_param_tensor = np.diag([100.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0])
         # 2. Actor
         self.action_change_penalty_coeff = 0.0
         # 3. Critic
@@ -1376,7 +1376,7 @@ class LunarLanderRcognitaCALFQ(Policy):
         self.dim_action = 2
         self.dim_observation = self.dim_state
 
-        self.max_abs_lat_force = 75.0
+        self.max_abs_lat_force = 50.0
         self.max_abs_vert_force = 2.0
 
         # Specific for lander

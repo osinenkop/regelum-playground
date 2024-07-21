@@ -1,1 +1,1 @@
-state_init: = np.array([[10.0, 35.0, 2 * np.pi / 3.0, 0.0, 0.0, 0.0]])
+state_init: = np.array([[10.0, 45.0, 2 * np.pi / 3.0, 0.0, 0.0, 0.0]])
