@@ -534,7 +534,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         super().__init__()
         # 1. Common agent tuning settings
         self.run_obj_param_tensor = np.diag([1.0, 1.0, 0.0])
-        self.episode_total_time = 8.0
+        self.episode_total_time = 13.0
         # 2. Actor
         self.action_change_penalty_coeff = 0.0
         # 3. Critic
@@ -547,7 +547,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         self.critic_weight_change_penalty_coeff = 0.0
         # 4. CALFQ
         self.safe_only = False
-        self.relax_probability = 0.75  # Probability to take CALF action even when CALF constraints are not satisfied
+        self.relax_probability = 0.99  # Probability to take CALF action even when CALF constraints are not satisfied
         self.relax_probability_fading_factor = 0.0
         self.goal_treshold = 0.4
         self.critic_low_kappa_coeff = 1e-2
@@ -686,6 +686,17 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         )
 
         result = observation_action @ self.run_obj_param_tensor @ observation_action.T
+
+        # DEBUG
+        # Gym's running objective
+
+        result = (
+            np.arccos(np.cos(angle)) ** 2
+            + 0.1 * angle_velocity**2
+            + 0.001 * to_row_vec(action)[0, 0] ** 2
+        )
+
+        # /DEBUG
 
         return to_scalar(result)
 
@@ -1353,7 +1364,7 @@ class LunarLanderRcognitaCALFQ(Policy):
         self.critic_weight_change_penalty_coeff = 1e4
         # 4. CALFQ
         self.safe_only = False
-        self.relax_probability = 0.25  # Probability to take CALF action even when CALF constraints are not satisfied
+        self.relax_probability = 0.3  # Probability to take CALF action even when CALF constraints are not satisfied
         self.relax_probability_fading_factor = 0.0
         self.goal_treshold = 4.2
         self.critic_low_kappa_coeff = 1e-2
