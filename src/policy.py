@@ -1344,18 +1344,18 @@ class LunarLanderRcognitaCALFQ(Policy):
         # 2. Actor
         self.action_change_penalty_coeff = 0.0
         # 3. Critic
-        self.critic_learn_rate = 0.001
+        self.critic_learn_rate = 0.5
         # critic_num_grad_steps>1 may lead to unexpected results. Possibly rehydra glitch
         self.critic_num_grad_steps = 1
         self.discount_factor = 1.0
-        self.buffer_size = 10
+        self.buffer_size = 20
         self.critic_struct = "quadratic"
         self.critic_weight_change_penalty_coeff = 1e4
         # 4. CALFQ
         self.safe_only = False
-        self.relax_probability = 0.25  # Probability to take CALF action even when CALF constraints are not satisfied
-        self.relax_probability_fading_factor = 0.75
-        self.goal_treshold = 4.2
+        self.relax_probability = 0.5  # Probability to take CALF action even when CALF constraints are not satisfied
+        self.relax_probability_fading_factor = 0.0
+        self.goal_treshold = 20.0
         self.critic_low_kappa_coeff = 1e-2
         self.critic_up_kappa_coeff = 1e4
         self.critic_desired_decay_coeff = 1e-4
@@ -1383,7 +1383,7 @@ class LunarLanderRcognitaCALFQ(Policy):
         self.is_safe_landing = False
 
         # Taken from initial_conditions config for lunar lander
-        self.state_init = np.array([[10.0, 35.0, 2 * np.pi / 3.0, 0.0, 0.0, 0.0]])
+        self.state_init = np.array([[-10.0, 35.0, 2 * np.pi / 3.0, 0.0, 0.0, 0.0]])
         self.observation_init = self.state_init
         self.score = 0
         self.clock = 1
@@ -1430,7 +1430,7 @@ class LunarLanderRcognitaCALFQ(Policy):
 
         self.critic_weight_tensor_init = to_row_vec(
             np.random.uniform(
-                critic_big_number / 100, critic_big_number / 2, size=self.dim_critic
+                critic_big_number / 100, critic_big_number / 101, size=self.dim_critic
             )
         )
 
@@ -1443,7 +1443,7 @@ class LunarLanderRcognitaCALFQ(Policy):
         # Gives a positive-definite initial guess for quadratic model
         # if self.critic_struct == "quadratic":
         #     self.critic_weight_tensor_init = to_row_vec(
-        #         np.array([5488.586, 7152.178, 6028.031, 5449.287, 4237.124, 6459.295])
+        #         np.array(np.)
         #     )
 
         self.critic_weight_tensor = self.critic_weight_tensor_init
@@ -1869,7 +1869,7 @@ class LunarLanderRcognitaCALFQ(Policy):
     def get_optimized_action(self, critic_weight_tensor, observation):
 
         # Methods that respect constraints: BFGS, L-BFGS-B, SLSQP, trust-constr, Powell
-        actor_opt_method = "trust-constr"
+        actor_opt_method = "L-BFGS-B"
         if actor_opt_method == "trust-constr":
             actor_opt_options = {
                 "maxiter": 140,
@@ -1955,7 +1955,8 @@ class LunarLanderRcognitaCALFQ(Policy):
 
     def get_safe_action(self, observation: np.ndarray) -> np.ndarray:
 
-        self.action[0, 0] = self.pid_omega.compute_signal(
+        action = np.zeros([1, 2])
+        action[0, 0] = self.pid_omega.compute_signal(
             rg.array([observation[0, 2]]),
             error_derivative=rg.array([observation[0, 5]]),
         ).reshape(-1) - rg.cos(observation[0, 2]) ** 2 * self.pid_x.compute_signal(
@@ -1964,8 +1965,10 @@ class LunarLanderRcognitaCALFQ(Policy):
         ).reshape(
             -1
         )
+        
+        # action[0, 1] = 0.0
 
-        return self.action
+        return action
 
     def get_action(self, observation: np.ndarray) -> np.ndarray:
 
@@ -1990,7 +1993,7 @@ class LunarLanderRcognitaCALFQ(Policy):
         self.critic_weight_tensor = self.get_optimized_critic_weights(
             observation,
             self.action_curr,
-            use_grad_descent=False,
+            use_grad_descent=True,
             use_decay_constraint=True,
             use_kappa_constraint=True,
             check_persistence_of_excitation=True,
