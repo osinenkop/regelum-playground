@@ -547,7 +547,7 @@ class InvertedPendulumRcognitaCALFQ(Policy):
         self.critic_weight_change_penalty_coeff = 0.0
         # 4. CALFQ
         self.safe_only = False
-        self.relax_probability = 0.75  # Probability to take CALF action even when CALF constraints are not satisfied
+        self.relax_probability = 0.85  # Probability to take CALF action even when CALF constraints are not satisfied
         self.relax_probability_fading_factor = 0.0
         self.goal_treshold = 0.4
         self.critic_low_kappa_coeff = 1e-2
@@ -1142,7 +1142,11 @@ class InvertedPendulumRcognitaCALFQ(Policy):
             or sample <= self.relax_probability
         ):
 
-            self.update_calf_state(critic_weight_tensor, observation, action)
+            # Do not update CALF's state if relaxed action fired
+            if sample > self.relax_probability:
+                self.update_calf_state(critic_weight_tensor, observation, action)
+
+            # self.update_calf_state(critic_weight_tensor, observation, action)
 
             return action
 
@@ -1944,7 +1948,9 @@ class LunarLanderRcognitaCALFQ(Policy):
             or sample <= self.relax_probability
         ):
 
-            self.update_calf_state(critic_weight_tensor, observation, action)
+            # Do not update CALF's state if relaxed action fired
+            if sample > self.relax_probability:
+                self.update_calf_state(critic_weight_tensor, observation, action)
 
             return action
 
