@@ -1354,7 +1354,7 @@ class LunarLanderRcognitaCALFQ(Policy):
         # 4. CALFQ
         self.safe_only = False
         self.relax_probability = 0.25  # Probability to take CALF action even when CALF constraints are not satisfied
-        self.relax_probability_fading_factor = 0.0
+        self.relax_probability_fading_factor = 0.75
         self.goal_treshold = 4.2
         self.critic_low_kappa_coeff = 1e-2
         self.critic_up_kappa_coeff = 1e4
