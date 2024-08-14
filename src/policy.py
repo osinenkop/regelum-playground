@@ -1357,9 +1357,9 @@ class LunarLanderRcognitaCALFQ(Policy):
         self.critic_weight_change_penalty_coeff = 1e4
         # 4. CALFQ
         self.safe_only = False
-        self.relax_probability = 0.5  # Probability to take CALF action even when CALF constraints are not satisfied
+        self.relax_probability = 0.55  # Probability to take CALF action even when CALF constraints are not satisfied
         self.relax_probability_fading_factor = 0.0
-        self.goal_treshold = 20.0
+        self.goal_treshold = 25.0
         self.critic_low_kappa_coeff = 1e-2
         self.critic_up_kappa_coeff = 1e4
         self.critic_desired_decay_coeff = 1e-4
@@ -1382,6 +1382,8 @@ class LunarLanderRcognitaCALFQ(Policy):
 
         self.max_abs_lat_force = 50.0
         self.max_abs_vert_force = 2.0
+
+        self.action_counter = 0
 
         # Specific for lander
         self.is_safe_landing = False
@@ -1971,7 +1973,7 @@ class LunarLanderRcognitaCALFQ(Policy):
         ).reshape(
             -1
         )
-        
+
         # action[0, 1] = 0.0
 
         return action
@@ -2054,6 +2056,11 @@ class LunarLanderRcognitaCALFQ(Policy):
             [-self.max_abs_vert_force, -self.max_abs_lat_force],
             [self.max_abs_vert_force, self.max_abs_lat_force],
         )
+
+        if self.action_counter == 0:
+            action = self.action_curr
+
+        self.action_counter += 1
 
         # Force proper dimensionsing according to the convention
         action = to_row_vec(action)
