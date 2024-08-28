@@ -216,6 +216,12 @@ python run.py \
 
 > **Note:**
 >
+> For detailed information on the implementation of SAC and TD3 algorithms in regelum-playground, please refer to the comprehensive tutorial in [notes/sac_td3_regelum_tutorial.md](./notes/sac_td3_regelum_tutorial.md). This tutorial provides in-depth explanations of the algorithm structures, key features, and integration with the regelum framework.
+
+
+
+> **Note:**
+>
 > For the `--fps` parameter, you can select any suitable value to ensure a smooth experience (e.g., `--fps=2`, `--fps=10`, `--fps=20`, etc.).
 
 <!-- TOC --><a name="repo-structure"></a>

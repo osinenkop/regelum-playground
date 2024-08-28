@@ -190,6 +190,8 @@ class SACScenario(CleanRLScenario):
         self.actor_optimizer = optim.Adam(
             list(self.actor.parameters()), lr=self.policy_lr
         )
+        # Note: This implementation uses the ReplayBuffer from Stable Baselines 3 (SB3).
+        # CleanRL utilizes this SB3 replay buffer for efficient experience storage and sampling.
         self.rb = ReplayBuffer(
             buffer_size,
             observation_space=gym.spaces.Box(-np.inf, np.inf, shape=(dim_observation,)),
@@ -232,6 +234,8 @@ class SACScenario(CleanRLScenario):
             next_obs, rewards, terminations, truncations, infos = self.envs.step(
                 actions
             )
+            # We need state and time for logging, so we extracted it 2 lines above
+            # before calling the step method
             self.post_compute_action(
                 self.state,
                 obs,
@@ -324,6 +328,9 @@ class SACScenario(CleanRLScenario):
                             self.tau * param.data + (1 - self.tau) * target_param.data
                         )
                 if global_step % 100 == 0:
+                    # We use callbacks functionality to save losses and metrics
+                    # The save_losses method is implemented in the base class
+                    # and handles the logging through callbacks
                     self.save_losses(
                         global_step=global_step,
                         qf1_values=qf1_a_values.mean().item(),
