@@ -78,6 +78,25 @@ class TD3Scenario(Scenario):
         learning_rate: float = 3e-4,
         policy_noise: float = 0.2,
     ):
+        """
+        Initialize the TD3Scenario.
+
+        Args:
+            simulator: The simulator object.
+            running_objective: The running objective for the scenario.
+            device: The device to run the computations on.
+            total_timesteps: Total number of timesteps for the scenario.
+            buffer_size: Size of the replay buffer.
+            gamma: Discount factor for future rewards.
+            tau: Soft update coefficient for target networks.
+            batch_size: Batch size for training.
+            learning_starts: Number of timesteps before learning starts.
+            policy_frequency: Frequency of policy updates.
+            noise_clip: Maximum value of the noise added to target policy.
+            exploration_noise: Standard deviation of Gaussian exploration noise.
+            learning_rate: Learning rate for the optimizer.
+            policy_noise: Standard deviation of Gaussian noise added to policy.
+        """
         self.simulator = simulator
         self.running_objective = running_objective
         self.device = device
@@ -87,7 +106,7 @@ class TD3Scenario(Scenario):
         self.tau = tau
         self.batch_size = batch_size
         self.learning_starts = learning_starts
-        self.policy_frequency  = policy_frequency 
+        self.policy_frequency = policy_frequency 
         self.noise_clip = noise_clip
         self.exploration_noise = exploration_noise
         self.learning_rate = learning_rate
