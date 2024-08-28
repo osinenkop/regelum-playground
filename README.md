@@ -178,6 +178,42 @@ python run.py \
 ```
 
 
+### Soft Actor-Critic (SAC) on Inverted Pendulum with Gym-like Observation
+
+```bash
+python run.py \
+    scenario=sac \
+    system=inv_pendulum_with_gym_observation \
+    running_objective=gym_pendulum \
+    simulator=casadi_random_state_init \
+    scenario.autotune=False \
+    scenario.policy_lr=0.00079 \
+    scenario.q_lr=0.00025 \
+    scenario.alpha=0.0085 \
+    +seed=4 
+```
+> **Note:**
+>
+> You can set any seed you want by modifying the `+seed` parameter. For example, you can use `+seed=42` or any other integer value. Different seeds may lead to different training outcomes due to the stochastic nature of the algorithm.
+
+### Twin Delayed Deep Deterministic Policy Gradient (TD3) on Inverted Pendulum with Gym-like Observation
+
+To run the TD3 algorithm on the inverted pendulum system with a gym-like observation space, use the following command:
+
+```bash
+python run.py \
+    scenario=td3 \
+    system=inv_pendulum_with_gym_observation \
+    running_objective=gym_pendulum \
+    simulator=casadi_random_state_init  \
+    +seed=4   
+```
+
+> **Note:**
+>
+> You can set any seed you want by modifying the `+seed` parameter. For example, you can use `+seed=42` or any other integer value. Different seeds may lead to different training outcomes due to the stochastic nature of the algorithm.
+
+
 > **Note:**
 >
 > For the `--fps` parameter, you can select any suitable value to ensure a smooth experience (e.g., `--fps=2`, `--fps=10`, `--fps=20`, etc.).
