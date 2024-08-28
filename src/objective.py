@@ -64,5 +64,4 @@ class GymPendulumRunningObjective:
         angle = state[0, 0]
         angle_vel = state[0, 1]
         torque = action[0, 0]
-
-        return angle_normalize(angle) + 0.1 * angle_vel + 0.001 * torque
+        return angle_normalize(angle) ** 2 + 0.1 * angle_vel**2 + 0.001 * torque**2

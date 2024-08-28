@@ -107,7 +107,7 @@ class SACScenario(CleanRLScenario):
         q_lr: float = 1.0e-3,
         policy_frequency: int = 2,
         target_network_frequency: int = 1,
-        alpha: float = 20.2,
+        alpha: float = 0.2,
         autotune: bool = True,
     ):
         """

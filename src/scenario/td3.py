@@ -218,7 +218,10 @@ class TD3Scenario(CleanRLScenario):
 
                     next_state_actions = (
                         self.actor_target(data.next_observations) + clipped_noise
-                    ).clamp(self.envs.single_action_space.low[0], self.envs.single_action_space.high[0])
+                    ).clamp(
+                        self.envs.single_action_space.low[0],
+                        self.envs.single_action_space.high[0],
+                    )
 
                     qf1_next_target = self.qf1_target(
                         data.next_observations, next_state_actions
@@ -241,7 +244,7 @@ class TD3Scenario(CleanRLScenario):
                 self.q_optimizer.zero_grad()
                 qf_loss.backward()
                 self.q_optimizer.step()
-                
+
                 actor_loss = None
                 if global_step % self.policy_frequency == 0:
                     actor_loss = -self.qf1(
