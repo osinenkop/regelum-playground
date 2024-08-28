@@ -9,32 +9,8 @@ from torch.distributions.normal import Normal
 from regelum.simulator import Simulator
 from regelum.objective import RunningObjective
 import gymnasium as gym
-from regelum.scenario import Scenario
 import mlflow
-from regelum.callback import Callback
-
-
-def log_metrics(metrics):
-    global_step = metrics["global_step"]
-    for metric in metrics:
-        if metric != "global_step":
-            mlflow.log_metric(metric, metrics[metric], global_step)
-
-
-class EpisodicReturnCallback(Callback):
-    def is_target_event(self, obj, method, output, triggers):
-        return isinstance(obj, SACScenario) and method == "save_episodic_return"
-
-    def on_function_call(self, obj, method, output):
-        log_metrics(metrics=output)
-
-
-class LossesCallback(Callback):
-    def is_target_event(self, obj, method, output, triggers):
-        return isinstance(obj, SACScenario) and method == "save_losses"
-
-    def on_function_call(self, obj, method, output):
-        log_metrics(metrics=output)
+from .base import CleanRLScenario
 
 
 class SoftQNetwork(nn.Module):
@@ -115,7 +91,7 @@ class Actor(nn.Module):
         return action, log_prob, mean
 
 
-class SACScenario(Scenario):
+class SACScenario(CleanRLScenario):
     def __init__(
         self,
         simulator: Simulator,
@@ -154,10 +130,12 @@ class SACScenario(Scenario):
             alpha: Temperature parameter for entropy regularization.
             autotune: Whether to automatically tune the temperature parameter.
         """
-        self.simulator = simulator
-        self.running_objective = running_objective
-        self.device = device
-        self.total_timesteps = total_timesteps
+        super().__init__(
+            simulator=simulator,
+            running_objective=running_objective,
+            total_timesteps=total_timesteps,
+            device=device,
+        )
         self.buffer_size = buffer_size
         self.gamma = gamma
         self.tau = tau
@@ -198,17 +176,6 @@ class SACScenario(Scenario):
             handle_timeout_termination=False,
         )
 
-        def make_env(env):
-            def thunk():
-                wrapped_env = gym.wrappers.RecordEpisodeStatistics(env)
-                return wrapped_env
-
-            return thunk
-
-        self.envs = gym.vector.SyncVectorEnv(
-            [make_env(RgEnv(simulator, running_objective))]
-        )
-
         if autotune:
             self.target_entropy = -torch.prod(
                 torch.Tensor(self.envs.single_action_space.shape).to(device)
@@ -218,51 +185,6 @@ class SACScenario(Scenario):
             self.a_optimizer = optim.Adam([self.log_alpha], lr=q_lr)
         else:
             self.alpha = alpha
-
-        self.N_episodes = int(
-            total_timesteps / simulator.time_final * simulator.max_step
-        )
-        self.episode_id = 1
-        self.N_iterations = 1
-        self.value = 0
-
-    @apply_callbacks()
-    def post_compute_action(self, state, obs, action, reward, time, global_step):
-        self.current_running_objective = reward
-        self.value += reward
-        return {
-            "estimated_state": state,
-            "observation": obs,
-            "time": time,
-            "episode_id": self.episode_id,
-            "iteration_id": 1,
-            "step_id": global_step,
-            "action": action,
-            "running_objective": reward,
-            "current_value": self.value,
-        }
-
-    @apply_callbacks()
-    def save_episodic_return(self, episodic_return, global_step):
-        return {
-            "global_step": global_step,
-            "charts/episodic_return": episodic_return,
-        }
-
-    @apply_callbacks()
-    def save_losses(self, global_step, **losses):
-        return {"losses/" + loss: losses[loss] for loss in losses} | {
-            "global_step": global_step
-        }
-
-    @apply_callbacks()
-    def reset_episode(self):
-        self.episode_id += 1
-
-    @apply_callbacks()
-    def reload_scenario(self):
-        self.recent_value = self.value
-        self.value = 0
 
     def run(self):
         obs, _ = self.envs.reset()

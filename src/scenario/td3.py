@@ -9,7 +9,7 @@ from stable_baselines3.common.buffers import ReplayBuffer
 import gymnasium as gym
 
 from regelum.simulator import Simulator
-from regelum.scenario import Scenario
+from .base import CleanRLScenario
 from regelum.objective import RunningObjective
 from src.rgenv import RgEnv
 
@@ -60,7 +60,7 @@ class QNetwork(nn.Module):
         return self.fc3(x)
 
 
-class TD3Scenario(Scenario):
+class TD3Scenario(CleanRLScenario):
     def __init__(
         self,
         simulator: Simulator,
@@ -72,7 +72,7 @@ class TD3Scenario(Scenario):
         tau: float = 0.005,
         batch_size: int = 256,
         learning_starts: int = 25000,
-        policy_frequency : int = 2,
+        policy_frequency: int = 2,
         noise_clip: float = 0.5,
         exploration_noise: float = 0.1,
         learning_rate: float = 3e-4,
@@ -97,16 +97,18 @@ class TD3Scenario(Scenario):
             learning_rate: Learning rate for the optimizer.
             policy_noise: Standard deviation of Gaussian noise added to policy.
         """
-        self.simulator = simulator
-        self.running_objective = running_objective
-        self.device = device
-        self.total_timesteps = total_timesteps
+        super().__init__(
+            simulator=simulator,
+            running_objective=running_objective,
+            total_timesteps=total_timesteps,
+            device=device,
+        )
         self.buffer_size = buffer_size
         self.gamma = gamma
         self.tau = tau
         self.batch_size = batch_size
         self.learning_starts = learning_starts
-        self.policy_frequency = policy_frequency 
+        self.policy_frequency = policy_frequency
         self.noise_clip = noise_clip
         self.exploration_noise = exploration_noise
         self.learning_rate = learning_rate
@@ -144,61 +146,6 @@ class TD3Scenario(Scenario):
             device=device,
             handle_timeout_termination=False,
         )
-
-        def make_env(env):
-            def thunk():
-                wrapped_env = gym.wrappers.RecordEpisodeStatistics(env)
-                return wrapped_env
-
-            return thunk
-
-        self.envs = gym.vector.SyncVectorEnv(
-            [make_env(RgEnv(simulator, running_objective))]
-        )
-        self.N_episodes = int(
-            total_timesteps / simulator.time_final * simulator.max_step
-        )
-        self.episode_id = 1
-        self.N_iterations = 1
-        self.value = 0
-
-    @apply_callbacks()
-    def post_compute_action(self, state, obs, action, reward, time, global_step):
-        self.current_running_objective = reward
-        self.value += reward
-        return {
-            "estimated_state": state,
-            "observation": obs,
-            "time": time,
-            "episode_id": self.episode_id,
-            "iteration_id": 1,
-            "step_id": global_step,
-            "action": action,
-            "running_objective": reward,
-            "current_value": self.value,
-        }
-
-    @apply_callbacks()
-    def save_episodic_return(self, episodic_return, global_step):
-        return {
-            "global_step": global_step,
-            "charts/episodic_return": episodic_return,
-        }
-
-    @apply_callbacks()
-    def save_losses(self, global_step, **losses):
-        return {"losses/" + loss: losses[loss] for loss in losses} | {
-            "global_step": global_step
-        }
-
-    @apply_callbacks()
-    def reset_episode(self):
-        self.episode_id += 1
-
-    @apply_callbacks()
-    def reload_scenario(self):
-        self.recent_value = self.value
-        self.value = 0
 
     def run(self):
         obs, _ = self.envs.reset()
@@ -242,15 +189,11 @@ class TD3Scenario(Scenario):
             # TRY NOT TO MODIFY: record rewards for plotting purposes
             if "final_info" in infos:
                 for info in infos["final_info"]:
-                    print(
-                        f"global_step={global_step}, episodic_return={info['episode']['r']}"
-                    )
                     self.save_episodic_return(
                         global_step=global_step, episodic_return=info["episode"]["r"]
                     )
                     self.reload_scenario()
                     self.reset_episode()
-                    # Add logging here if needed
 
             # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
             real_next_obs = next_obs.copy()
@@ -299,7 +242,7 @@ class TD3Scenario(Scenario):
                 qf_loss.backward()
                 self.q_optimizer.step()
 
-                if global_step % self.policy_frequency  == 0:
+                if global_step % self.policy_frequency == 0:
                     actor_loss = -self.qf1(
                         data.observations, self.actor(data.observations)
                     ).mean()

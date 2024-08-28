@@ -10,8 +10,7 @@ callbacks:
   - regelum.callback.ScenarioStepLogger
   - regelum.callback.HistoricalDataCallback
   - regelum.callback.ValueCallback
-  - src.scenario.sac.EpisodicReturnCallback
-  - src.scenario.sac.LossesCallback
+  - src.scenario.base.CleanRLCallback
 
 rehydra:
   sweep:
