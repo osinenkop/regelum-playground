@@ -72,7 +72,7 @@ class TD3Scenario(Scenario):
         tau: float = 0.005,
         batch_size: int = 256,
         learning_starts: int = 25000,
-        policy_delay: int = 2,
+        policy_frequency : int = 2,
         noise_clip: float = 0.5,
         exploration_noise: float = 0.1,
         learning_rate: float = 3e-4,
@@ -87,7 +87,7 @@ class TD3Scenario(Scenario):
         self.tau = tau
         self.batch_size = batch_size
         self.learning_starts = learning_starts
-        self.policy_delay = policy_delay
+        self.policy_frequency  = policy_frequency 
         self.noise_clip = noise_clip
         self.exploration_noise = exploration_noise
         self.learning_rate = learning_rate
@@ -280,7 +280,7 @@ class TD3Scenario(Scenario):
                 qf_loss.backward()
                 self.q_optimizer.step()
 
-                if global_step % self.policy_delay == 0:
+                if global_step % self.policy_frequency  == 0:
                     actor_loss = -self.qf1(
                         data.observations, self.actor(data.observations)
                     ).mean()
