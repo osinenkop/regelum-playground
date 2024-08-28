@@ -10,6 +10,31 @@ from regelum.simulator import Simulator
 from regelum.objective import RunningObjective
 import gymnasium as gym
 from regelum.scenario import Scenario
+import mlflow
+from regelum.callback import Callback
+
+
+def log_metrics(metrics):
+    global_step = metrics["global_step"]
+    for metric in metrics:
+        if metric != "global_step":
+            mlflow.log_metric(metric, metrics[metric], global_step)
+
+
+class EpisodicReturnCallback(Callback):
+    def is_target_event(self, obj, method, output, triggers):
+        return isinstance(obj, SACScenario) and method == "save_episodic_return"
+
+    def on_function_call(self, obj, method, output):
+        log_metrics(metrics=output)
+
+
+class LossesCallback(Callback):
+    def is_target_event(self, obj, method, output, triggers):
+        return isinstance(obj, SACScenario) and method == "save_losses"
+
+    def on_function_call(self, obj, method, output):
+        log_metrics(metrics=output)
 
 
 class SoftQNetwork(nn.Module):
@@ -218,6 +243,19 @@ class SACScenario(Scenario):
         }
 
     @apply_callbacks()
+    def save_episodic_return(self, episodic_return, global_step):
+        return {
+            "global_step": global_step,
+            "charts/episodic_return": episodic_return,
+        }
+
+    @apply_callbacks()
+    def save_losses(self, global_step, **losses):
+        return {"losses/" + loss: losses[loss] for loss in losses} | {
+            "global_step": global_step
+        }
+
+    @apply_callbacks()
     def reset_episode(self):
         self.episode_id += 1
 
@@ -261,14 +299,13 @@ class SACScenario(Scenario):
             )
             if "final_info" in infos:
                 for info in infos["final_info"]:
+                    self.save_episodic_return(global_step=global_step, episodic_return=self.value)
                     self.reload_scenario()
                     self.reset_episode()
+                    
                     print(
                         f"global_step={global_step}, episodic_return={info['episode']['r']}"
                     )
-                    # mlflow.log_metric(
-                    #     "charts/episodic_return", info["episode"]["r"], global_step
-                    # )
                     # mlflow.log_metric(
                     #     "charts/episodic_length", info["episode"]["l"], global_step
                     # )
@@ -280,11 +317,7 @@ class SACScenario(Scenario):
                     #     self.env_spec.observations_names,
                     #     self.env_spec.actions_names,
                     # )
-                    episodic_observations = [next_obs]
-                    episodic_actions.clear()
                     break
-            else:
-                episodic_observations.append(next_obs)
             # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
             real_next_obs = next_obs.copy()
             for idx, trunc in enumerate(truncations):
@@ -359,6 +392,21 @@ class SACScenario(Scenario):
                     ):
                         target_param.data.copy_(
                             self.tau * param.data + (1 - self.tau) * target_param.data
+                        )
+                if global_step % 100 == 0:
+                    self.save_losses(
+                        global_step=global_step,
+                        qf1_values=qf1_a_values.mean().item(),
+                        qf2_values=qf2_a_values.mean().item(),
+                        qf1_loss=qf1_loss.item(),
+                        qf2_loss=qf2_loss.item(),
+                        actor_loss=actor_loss.item(),
+                        alpha=self.alpha,
+                    )
+                    if self.autotune:
+                        self.save_losses(
+                            global_step=global_step,
+                            alpha_loss=alpha_loss.item(),
                         )
                 # if global_step % 100 == 0:
                 #     mlflow.log_metric(
