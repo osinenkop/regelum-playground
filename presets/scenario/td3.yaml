@@ -1,0 +1,22 @@
+_target_: src.scenario.td3.TD3Scenario
+simulator: ~ simulator
+running_objective:
+  _target_: regelum.objective.RunningObjective
+  model:
+    _target_: regelum.model.ModelQuadLin
+    weights: = numpy.array([10., 3., 0.])
+    quad_matrix_type: diagonal
+    is_with_linear_terms: False
+
+device: "cuda:0"
+total_timesteps: 1000000
+buffer_size: 1000000
+gamma: 0.99
+tau: 0.005
+batch_size: 256
+learning_starts: 25000
+policy_delay: 2
+noise_clip: 0.5
+exploration_noise: 0.1
+learning_rate: 3e-4
+policy_noise: 0.2

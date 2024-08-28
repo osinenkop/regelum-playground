@@ -266,8 +266,6 @@ class SACScenario(Scenario):
 
     def run(self):
         obs, _ = self.envs.reset()
-        episodic_observations = [obs]
-        episodic_actions = []
         for global_step in range(self.total_timesteps):
             # ALGO LOGIC: put action logic here
             if global_step < self.learning_starts:
@@ -283,7 +281,6 @@ class SACScenario(Scenario):
                 actions, _, _ = self.actor.get_action(torch.Tensor(obs).to(self.device))
                 actions = actions.detach().cpu().numpy()
 
-            episodic_actions.append(actions)
             self.state = self.envs.envs[0].env.state.reshape(1, -1)
             self.time = self.envs.envs[0].env.simulator.time
             next_obs, rewards, terminations, truncations, infos = self.envs.step(
@@ -299,24 +296,11 @@ class SACScenario(Scenario):
             )
             if "final_info" in infos:
                 for info in infos["final_info"]:
-                    self.save_episodic_return(global_step=global_step, episodic_return=self.value)
+                    self.save_episodic_return(
+                        global_step=global_step, episodic_return=self.value
+                    )
                     self.reload_scenario()
                     self.reset_episode()
-                    
-                    print(
-                        f"global_step={global_step}, episodic_return={info['episode']['r']}"
-                    )
-                    # mlflow.log_metric(
-                    #     "charts/episodic_length", info["episode"]["l"], global_step
-                    # )
-                    # save_episodic_data(
-                    #     info,
-                    #     global_step,
-                    #     episodic_observations,
-                    #     episodic_actions,
-                    #     self.env_spec.observations_names,
-                    #     self.env_spec.actions_names,
-                    # )
                     break
             # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
             real_next_obs = next_obs.copy()
@@ -408,37 +392,4 @@ class SACScenario(Scenario):
                             global_step=global_step,
                             alpha_loss=alpha_loss.item(),
                         )
-                # if global_step % 100 == 0:
-                #     mlflow.log_metric(
-                #         "losses/qf1_values", qf1_a_values.mean().item(), global_step
-                #     )
-                #     mlflow.log_metric(
-                #         "losses/qf2_values", qf2_a_values.mean().item(), global_step
-                #     )
-                #     mlflow.log_metric("losses/qf1_loss", qf1_loss.item(), global_step)
-                #     mlflow.log_metric("losses/qf2_loss", qf2_loss.item(), global_step)
-                #     mlflow.log_metric("losses/qf_loss", qf_loss.item() / 2.0, global_step)
-                #     mlflow.log_metric("losses/actor_loss", actor_loss.item(), global_step)
-                #     mlflow.log_metric("losses/alpha", alpha, global_step)
-                #     print("SPS:", int(global_step / (time.time() - start_time)))
-                #     mlflow.log_metric(
-                #         "charts/SPS",
-                #         int(global_step / (time.time() - start_time)),
-                #         global_step,
-                #     )
-                #     if self.autotune:
-                #         mlflow.log_metric(
-                #             "losses/alpha_loss", alpha_loss.item(), global_step
-                #         )
-                # if self.env_spec.get("eval_env") is not None:
-                #     if global_step % self.env_spec.eval_n_steps == 0:
-                #         evaluate_policy(
-                #             self.env_spec.eval_env,
-                #             actor,
-                #             global_step,
-                #             get_action=lambda obs: self.actorget_action(obs)[0],
-                #             device=device,
-                #             observations_names=self.env_spec.observations_names,
-                #             actions_names=self.env_spec.actions_names,
-                #         )
-        # envs.close()
+        self.envs.close()
