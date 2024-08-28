@@ -164,7 +164,7 @@ class TD3Scenario(CleanRLScenario):
                 with torch.no_grad():
                     actions = self.actor(torch.Tensor(obs).to(self.device))
                     actions += torch.normal(
-                        0, actor.action_scale * self.exploration_noise
+                        0, self.actor.action_scale * self.exploration_noise
                     )
                     actions = (
                         actions.cpu()
@@ -218,7 +218,7 @@ class TD3Scenario(CleanRLScenario):
 
                     next_state_actions = (
                         self.actor_target(data.next_observations) + clipped_noise
-                    ).clamp(self.action_bounds[:, 0], self.action_bounds[:, 1])
+                    ).clamp(self.envs.single_action_space.low[0], self.envs.single_action_space.high[0])
 
                     qf1_next_target = self.qf1_target(
                         data.next_observations, next_state_actions
@@ -241,7 +241,8 @@ class TD3Scenario(CleanRLScenario):
                 self.q_optimizer.zero_grad()
                 qf_loss.backward()
                 self.q_optimizer.step()
-
+                
+                actor_loss = None
                 if global_step % self.policy_frequency == 0:
                     actor_loss = -self.qf1(
                         data.observations, self.actor(data.observations)
@@ -269,7 +270,8 @@ class TD3Scenario(CleanRLScenario):
                         target_param.data.copy_(
                             self.tau * param.data + (1 - self.tau) * target_param.data
                         )
-                if global_step % 100:
+
+                if global_step % 100 and actor_loss is not None:
                     self.save_losses(
                         global_step=global_step,
                         actor_loss=actor_loss.item(),

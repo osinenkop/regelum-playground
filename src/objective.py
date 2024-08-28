@@ -53,3 +53,16 @@ class ThreeWheeledRobotCostWithSpot(objective.RunningObjective):
         #     )
         # else:
         #     return quadratic_cost
+
+
+def angle_normalize(angle):
+    return (angle + np.pi) % (2 * np.pi) - np.pi
+
+
+class GymPendulumRunningObjective:
+    def __call__(self, state, action):
+        angle = state[0, 0]
+        angle_vel = state[0, 1]
+        torque = action[0, 0]
+
+        return angle_normalize(angle) + 0.1 * angle_vel + 0.001 * torque

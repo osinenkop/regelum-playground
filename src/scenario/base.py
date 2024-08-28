@@ -8,6 +8,7 @@ from regelum.callback import Callback
 from src.rgenv import RgEnv
 import mlflow
 
+
 class CleanRLScenario(Scenario):
     def __init__(
         self,

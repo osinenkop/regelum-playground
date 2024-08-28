@@ -1,14 +1,7 @@
 _target_: src.scenario.sac.SACScenario
 
 simulator: ~ simulator
-running_objective:
-  _target_: regelum.objective.RunningObjective
-  model:
-    _target_: regelum.model.ModelQuadLin
-    weights: = numpy.array([10., 3., 0.])
-    quad_matrix_type: diagonal
-    is_with_linear_terms: False
-
+running_objective: ~ running_objective
 device: "cuda:0"
 total_timesteps: 1000000
 buffer_size: 1000000
