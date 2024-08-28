@@ -1,4 +1,25 @@
-# docs and experiment results can be found at https://docs.cleanrl.dev/rl-algorithms/td3/#td3_continuous_actionpy
+"""Twin Delayed Deep Deterministic Policy Gradient (TD3) implementation.
+
+This file contains the implementation of the TD3 algorithm, adapted from the CleanRL repository
+(https://github.com/vwxyzjn/cleanrl/blob/master/cleanrl/td3_continuous_action.py) to work with
+the regelum framework.
+
+Key components:
+1. Actor network
+2. Critic networks (Q-functions)
+3. TD3Scenario class, which inherits from CleanRLScenario
+
+The TD3 algorithm improves upon DDPG by using two critic networks to reduce overestimation bias,
+delayed policy updates, and target policy smoothing.
+
+Main features:
+- Integration with regelum's Simulator and RunningObjective classes
+- Use of stable-baselines3 ReplayBuffer for efficient experience storage
+- Customizable hyperparameters for easy experimentation
+
+This implementation allows for seamless integration with regelum's ecosystem while maintaining
+the core TD3 algorithm structure.
+"""
 from typing import Optional
 import numpy as np
 import torch
@@ -178,6 +199,8 @@ class TD3Scenario(CleanRLScenario):
             next_obs, rewards, terminations, truncations, infos = self.envs.step(
                 actions
             )
+            # We need state and time for logging, so we extracted it 2 lines above
+            # before calling the step method
             self.post_compute_action(
                 self.state,
                 obs,
@@ -275,6 +298,9 @@ class TD3Scenario(CleanRLScenario):
                         )
 
                 if global_step % 100 and actor_loss is not None:
+                    # We use callbacks functionality to save losses and metrics
+                    # The save_losses method is implemented in the base class
+                    # and handles the logging through callbacks
                     self.save_losses(
                         global_step=global_step,
                         actor_loss=actor_loss.item(),

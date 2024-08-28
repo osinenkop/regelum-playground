@@ -1,3 +1,27 @@
+"""This file contains the implementation of the Soft Actor-Critic (SAC) algorithm.
+The implementation is based on the CleanRL repository:
+https://github.com/vwxyzjn/cleanrl/blob/master/cleanrl/sac_continuous_action.py
+
+We have adapted the original implementation to work with the regelum framework.
+Key changes include:
+1. Using mlflow for logging instead of Weights & Biases and tensorboard.
+2. Utilizing regelum's callback features for smooth logging of metrics and trajectories.
+3. Integrating with regelum's Simulator and RunningObjective classes.
+
+The file structure is as follows:
+1. Import statements
+2. SoftQNetwork class definition
+3. Actor class definition
+4. SACScenario class definition (which inherits from CleanRLScenario)
+
+The SACScenario class contains the main logic for the SAC algorithm, including:
+- Initialization of networks, optimizers, and replay buffer
+- Training loop
+- Evaluation and logging functions
+
+This implementation allows for easy integration with regelum's ecosystem while
+maintaining the core SAC algorithm structure from CleanRL.
+"""
 import torch
 from torch import nn
 import torch.nn.functional as F
