@@ -16,6 +16,9 @@
    * [Model-predictive controller for three-wheeled robot](#model-predictive-controller-for-three-wheeled-robot)
       + [On a plane with quadratic cost](#on-a-plane-with-quadratic-cost)
       + [On a plane with a Guassian spot of high cost](#on-a-plane-with-a-guassian-spot-of-high-cost)
+   * [Proximal Policy Optimizaion on Inverted Pendulum](#proximal-policy-optimizaion-on-inverted-pendulum)
+   * [Soft Actor-Critic (SAC) on Inverted Pendulum with Gym-like Observation](#soft-actor-critic-sac-on-inverted-pendulum-with-gym-like-observation)
+   * [Twin Delayed Deep Deterministic Policy Gradient (TD3) on Inverted Pendulum with Gym-like Observation](#twin-delayed-deep-deterministic-policy-gradient-td3-on-inverted-pendulum-with-gym-like-observation)
 - [Repo structure](#repo-structure)
 
 <!-- TOC end -->
@@ -167,6 +170,7 @@ python run.py \
 ```
 Notice how the robot avoids the spot with high cost
 
+<!-- TOC --><a name="proximal-policy-optimizaion-on-inverted-pendulum"></a>
 ### Proximal Policy Optimizaion on Inverted Pendulum
 
 ```
@@ -178,6 +182,7 @@ python run.py \
 ```
 
 
+<!-- TOC --><a name="soft-actor-critic-sac-on-inverted-pendulum-with-gym-like-observation"></a>
 ### Soft Actor-Critic (SAC) on Inverted Pendulum with Gym-like Observation
 
 ```bash
@@ -196,6 +201,7 @@ python run.py \
 >
 > You can set any seed you want by modifying the `+seed` parameter. For example, you can use `+seed=42` or any other integer value. Different seeds may lead to different training outcomes due to the stochastic nature of the algorithm.
 
+<!-- TOC --><a name="twin-delayed-deep-deterministic-policy-gradient-td3-on-inverted-pendulum-with-gym-like-observation"></a>
 ### Twin Delayed Deep Deterministic Policy Gradient (TD3) on Inverted Pendulum with Gym-like Observation
 
 To run the TD3 algorithm on the inverted pendulum system with a gym-like observation space, use the following command:
