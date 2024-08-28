@@ -26,7 +26,7 @@
 <!-- TOC --><a name="about"></a>
 ## About 
 
-This is a playground based on [regelum-control](https://regelum.aidynamic.io), a framework for control and reinforcement learning.
+This is a playground based on [regelum-control](https://regelum.aidynamic.group), a framework for control and reinforcement learning.
 It showcases various dynamical systems and controllers (also called policies).
 
 <!-- TOC --><a name="getting-started"></a>
