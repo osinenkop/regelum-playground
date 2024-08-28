@@ -1,0 +1,24 @@
+_target_: src.scenario.sac.SACScenario
+
+simulator: ~ simulator
+running_objective:
+  _target_: regelum.objective.RunningObjective
+  model:
+    _target_: regelum.model.ModelQuadLin
+    weights: = numpy.array([10., 3., 0.])
+    quad_matrix_type: diagonal
+    is_with_linear_terms: False
+
+device: "cuda:0"
+total_timesteps: 1000000
+buffer_size: 1000000
+gamma: 0.99
+tau: 0.005
+batch_size: 256
+learning_starts: 5000
+policy_lr: 3.0e-4
+q_lr: 1.0e-3
+policy_frequency: 2
+target_network_frequency: 1
+alpha: 20.2
+autotune: True

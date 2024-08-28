@@ -80,7 +80,7 @@ class InvertedPendulumEnergyBased(Policy):
 
         energy_total = (
             mass * grav_const * length * (np.cos(angle) - 1) / 2
-            + 1/2 * self.system.pendulum_moment_inertia() * angle_vel**2
+            + 1 / 2 * self.system.pendulum_moment_inertia() * angle_vel**2
         )
         energy_control_action = -self.gain * np.sign(angle_vel * energy_total)
 
@@ -136,7 +136,7 @@ class InvPendulumEnergyBasedFrictionCompensation(Policy):
         angle_vel = observation[0, 1]
         energy_total = (
             mass * grav_const * length * (np.cos(angle) - 1) / 2
-            + 1/2 * self.system.pendulum_moment_inertia() * angle_vel**2
+            + 1 / 2 * self.system.pendulum_moment_inertia() * angle_vel**2
         )
         energy_control_action = -self.gain * np.sign(
             angle_vel * energy_total
@@ -202,7 +202,7 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
 
         energy_total = (
             mass * grav_const * length * (np.cos(angle) - 1) / 2
-            + 1/2 * self.system.pendulum_moment_inertia() * angle_vel**2
+            + 1 / 2 * self.system.pendulum_moment_inertia() * angle_vel**2
         )
         energy_control_action = -self.gain * np.sign(
             angle_vel * energy_total
