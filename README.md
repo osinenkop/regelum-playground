@@ -222,7 +222,9 @@ python run.py \
 
 > **Note:**
 >
-> For detailed information on the implementation of SAC and TD3 algorithms in regelum-playground, please refer to the comprehensive tutorial in [notes/sac_td3_regelum_tutorial.md](./notes/sac_td3_regelum_tutorial.md). This tutorial provides in-depth explanations of the algorithm structures, key features, and integration with the regelum framework.
+> The implementations of SAC and TD3 in regelum-playground are adapted from the CleanRL repository (https://docs.cleanrl.dev/). CleanRL provides single-file implementations of reinforcement learning algorithms, which have been modified to work within the regelum framework. For detailed information on the original implementations, please refer to the [CleanRL documentation](https://docs.cleanrl.dev)
+>
+> The adaptations made for regelum-playground include integration with regelum's Simulator and RunningObjective classes, use of regelum's callback system for logging, and modifications to work with regelum's configuration system. While the core algorithm logic remains similar to CleanRL's implementation, these changes allow for seamless integration with the regelum ecosystem. For detailed information on the implementation of SAC and TD3 algorithms in regelum-playground, please refer to the comprehensive tutorial in [notes/sac_td3_regelum_tutorial.md](./notes/sac_td3_regelum_tutorial.md). This tutorial provides in-depth explanations of the algorithm structures, key features, and integration with the regelum framework.
 
 
 
