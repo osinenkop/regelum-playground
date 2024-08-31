@@ -13,7 +13,6 @@ from regelum import CasadiOptimizerConfig
 
 
 def soft_switch(signal1, signal2, gate, loc=np.cos(np.pi / 4), scale=10):
-
     # Soft switch coefficient
     switch_coeff = expit((gate - loc) * scale)
 
@@ -67,7 +66,6 @@ class InvertedPendulumEnergyBased(Policy):
         self.system = system
 
     def get_action(self, observation: np.ndarray) -> np.ndarray:
-
         params = self.system._parameters
         mass, grav_const, length = (
             params["mass"],
@@ -104,7 +102,6 @@ class InvertedPendulumEnergyBased(Policy):
 
 
 class InvPendulumEnergyBasedFrictionCompensation(Policy):
-
     def __init__(
         self,
         gain: float,
@@ -123,7 +120,6 @@ class InvPendulumEnergyBasedFrictionCompensation(Policy):
         self.system = system
 
     def get_action(self, observation: np.ndarray) -> np.ndarray:
-
         params = self.system._parameters
         mass, grav_const, length, friction_coeff = (
             params["mass"],
@@ -164,7 +160,6 @@ class InvPendulumEnergyBasedFrictionCompensation(Policy):
 
 
 class InvPendulumEnergyBasedFrictionAdaptive(Policy):
-
     def __init__(
         self,
         gain: float,
@@ -189,7 +184,6 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
         self.system = system
 
     def get_action(self, observation: np.ndarray) -> np.ndarray:
-
         params = self.system._parameters
         mass, grav_const, length = (
             params["mass"],
@@ -239,7 +233,6 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
 
 
 class InvertedPendulumBackstepping(Policy):
-
     def __init__(
         self,
         energy_gain: float,
@@ -250,7 +243,6 @@ class InvertedPendulumBackstepping(Policy):
         action_max: float,
         system: InvertedPendulumWithMotor,
     ):
-
         super().__init__()
 
         self.action_min = action_min
@@ -304,9 +296,7 @@ class InvertedPendulumBackstepping(Policy):
 
 
 class InvertedPendulumWithMotorPD(Policy):
-
     def __init__(self, pd_coeffs: list, action_min: float, action_max: float):
-
         super().__init__()
 
         self.action_min = action_min
@@ -323,7 +313,6 @@ class InvertedPendulumWithMotorPD(Policy):
 
 
 class ThreeWheeledRobotKinematicMinGradCLF(Policy):
-
     def __init__(
         self,
         optimizer_config: CasadiOptimizerConfig,
@@ -394,7 +383,6 @@ class ThreeWheeledRobotKinematicMinGradCLF(Policy):
 
 
 class ThreeWheeledRobotDynamicMinGradCLF(ThreeWheeledRobotKinematicMinGradCLF):
-
     def __init__(
         self,
         optimizer_config: CasadiOptimizerConfig,
@@ -416,10 +404,9 @@ class ThreeWheeledRobotDynamicMinGradCLF(ThreeWheeledRobotKinematicMinGradCLF):
 
 
 class ThreeWheeledRobotStabilizingPolicy(Policy):
-    
     def __init__(self, K):
         self.K = K
-        
+
     def get_action(self, observation):
         x = observation[0, 0]
         y = observation[0, 1]
@@ -448,3 +435,26 @@ class ThreeWheeledRobotStabilizingPolicy(Policy):
             omega = 0
             v = 0
         return rg.force_row(rg.hstack([v, omega]))
+
+
+class LunarLanderStabilizingPolicy(Policy):
+    def __init__(self, angle_pd_coefs=[180, 120], x_pd_coefs=[10, 40]):
+        super().__init__()
+        self.observation_prev = None
+        self.action_prev = None
+        self.angle_pd_coefs = angle_pd_coefs
+        self.x_pd_coefs = x_pd_coefs
+
+    def get_action(self, obs):
+        fx = -(
+            obs[:, 2, None] * self.angle_pd_coefs[0]
+            + obs[:, 5, None] * self.angle_pd_coefs[1]
+            - np.cos(obs[:, 2, None]) ** 2
+            * (
+                obs[:, 0, None] * self.x_pd_coefs[0]
+                + obs[:, 3, None] * self.x_pd_coefs[1]
+            )
+        )
+        fy = np.zeros_like(fx)
+        action = np.hstack((fx, fy))
+        return action

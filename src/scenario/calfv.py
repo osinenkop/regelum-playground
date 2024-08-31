@@ -321,7 +321,7 @@ class AgentCALFV:
         self.relax_probability *= self.relax_factor
         return action
 
-    def reset(self, global_step):
+    def reset(self, global_step, **kwargs):
         if global_step == 0 and self.is_nominal_first:
             self.safe_only = True
         elif global_step > 0 and self.is_nominal_first:
@@ -365,11 +365,11 @@ class CALFScenario(CleanRLScenario):
 
     def run(self):
         obs, _ = self.envs.reset()
-        self.agent_calfv.reset(global_step=0)
-        
+        self.agent_calfv.reset(obs=obs, global_step=0)
+
         for global_step in range(self.total_timesteps):
             action = self.agent_calfv.get_action(obs)
-            
+
             self.state = self.envs.envs[0].env.state.reshape(1, -1)
             self.time = self.envs.envs[0].env.simulator.time
             obs, rewards, terminations, truncations, infos = self.envs.step(action)
@@ -382,10 +382,9 @@ class CALFScenario(CleanRLScenario):
                 global_step,
             )
             if "final_info" in infos:
-                self.agent_calfv.reset(global_step=global_step)
+                self.agent_calfv.reset(obs=obs, global_step=global_step)
                 self.save_episodic_return(
-                        global_step=global_step, episodic_return=self.value
-                    )
+                    global_step=global_step, episodic_return=self.value
+                )
                 self.reload_scenario()
                 self.reset_episode()
-

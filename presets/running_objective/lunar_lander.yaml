@@ -1,0 +1,6 @@
+_target_: regelum.objective.RunningObjective
+model:
+  _target_: regelum.model.ModelQuadLin
+  quad_matrix_type: diagonal
+  is_with_linear_terms: false
+  weights: = numpy.array([1, 0.1, 10, 0.1, 0.1, 0.1, 0., 0.])
