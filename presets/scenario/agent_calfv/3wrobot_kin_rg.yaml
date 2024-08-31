@@ -1,0 +1,25 @@
+_target_: src.scenario.calfv.AgentCALFV
+
+env:
+  _target_: src.rgenv.RgEnv
+  simulator: ~ simulator
+  running_objective: ~ running_objective
+safe_policy: 
+  _target_: src.policy.ThreeWheeledRobotStabilizingPolicy
+  K: 3
+sampling_time: $ common.sampling_time
+critic_safe_decay_param: 1.0
+critic_regularization_param: 30000
+critic_td_n: 2
+critic_batch_size: 32
+relax_probability_min: 0.00
+relax_probability_max: 0.49
+relax_probability_stabilize_global_step: 5000
+critic_model:
+  _target_: regelum.model.ModelQuadLin
+  quad_matrix_type: full
+  is_with_linear_terms: false
+  dim_inputs: 3
+running_objective: ~ running_objective
+observer:
+  _target_: regelum.observer.ObserverTrivial

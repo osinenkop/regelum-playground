@@ -8,6 +8,7 @@ The file is structured as follows:
    - Methods for environment creation, episode management, and logging.
    - Placeholder methods for action computation and scenario-specific logic.
 """
+
 import numpy as np
 import gymnasium as gym
 from regelum.simulator import Simulator
@@ -18,16 +19,18 @@ from src.rgenv import RgEnv
 import mlflow
 from typing import Any
 
+
 class CleanRLScenario(Scenario):
     """Base class for CleanRL-style scenarios.
 
     https://docs.cleanrl.dev/
-    
+
     This class provides a foundation for implementing reinforcement learning scenarios
     using the CleanRL style within the regelum framework. It sets up the environment,
     handles episode management, and provides methods for action computation and
     episodic return logging.
     """
+
     def __init__(
         self,
         simulator: Simulator,
@@ -47,7 +50,6 @@ class CleanRLScenario(Scenario):
             total_timesteps: The total number of timesteps to run the scenario.
             device: The device (e.g., 'cpu' or 'cuda') to run computations on.
         """
-        super().__init__()
         self.total_timesteps = total_timesteps
         self.device = device
         self.simulator = simulator
@@ -71,7 +73,9 @@ class CleanRLScenario(Scenario):
         self.value = 0
 
     @apply_callbacks()
-    def post_compute_action(self, state, obs, action, reward, time, global_step) -> dict[str, Any]:
+    def post_compute_action(
+        self, state, obs, action, reward, time, global_step
+    ) -> dict[str, Any]:
         """Post-process the computed action and update scenario state.
 
         Called after an action is computed and applied to the environment.
@@ -196,6 +200,7 @@ class CleanRLCallback(Callback):
     Note: This callback should be added to the main.yaml configuration to be
     triggered during the execution of CleanRLScenario methods.
     """
+
     def log_metrics(self, metrics: dict[str, Any]):
         """Log metrics using MLflow.
 

@@ -5,7 +5,7 @@ defaults:
   - scenario: scenario
   - common: ${system}
   - initial_conditions: ${system}
-  - running_objective: gym_pendulum
+  - running_objective: ${system}
 
 callbacks:
   - regelum.callback.ScenarioStepLogger
