@@ -189,7 +189,6 @@ python run.py \
 python run.py \
     scenario=sac \
     system=inv_pendulum_with_gym_observation \
-    running_objective=gym_pendulum \
     simulator=casadi_random_state_init \
     scenario.autotune=False \
     scenario.policy_lr=0.00079 \
@@ -210,7 +209,6 @@ To run the TD3 algorithm on the inverted pendulum system with a gym-like observa
 python run.py \
     scenario=td3 \
     system=inv_pendulum_with_gym_observation \
-    running_objective=gym_pendulum \
     simulator=casadi_random_state_init  \
     +seed=4   
 ```

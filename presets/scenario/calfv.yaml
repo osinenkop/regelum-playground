@@ -1,8 +1,6 @@
 _target_: src.scenario.calfv.CALFScenario
 
-defaults:
-  - agent_calfv: 3wrobot_kin_rg
-
+agent_calfv: ~ agent_calfv
 simulator: ~ simulator
 running_objective: ~ running_objective
 total_timesteps: 50000

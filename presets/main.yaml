@@ -1,3 +1,12 @@
+# This section defines the default configurations for the project
+# It includes various components such as policy, system, simulator, scenario, etc.
+# Each component is loaded from its respective YAML file
+# The ${system} syntax allows for dynamic loading based on the chosen system
+# Optional components like agent_calfv are also included
+# The agent_calfv is specifically needed only when scenario=calfv
+# This allows for conditional loading of the CALFV agent
+# when running the CALFV scenario, while not affecting other scenarios
+
 defaults:
   - policy: pd
   - system: inv_pendulum_with_friction
@@ -6,6 +15,7 @@ defaults:
   - common: ${system}
   - initial_conditions: ${system}
   - running_objective: ${system}
+  - optional agent_calfv: ${system}
 
 callbacks:
   - regelum.callback.ScenarioStepLogger
