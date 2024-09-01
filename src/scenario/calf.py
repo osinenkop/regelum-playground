@@ -5,10 +5,12 @@ from .calf_agent.calfv import AgentCALFV
 from .calf_agent.calfq import AgentCALFQ
 from typing import Union
 
-# Note: The CleanRLScenario class is used for CALF due to its convenience. 
+
+# Note: The CleanRLScenario class is used for CALF due to its convenience.
 # CALF is not natively implemented in CleanRL.
 class CALFScenario(CleanRLScenario):
     """CALFScenario class is used to run the CALF algorithm."""
+
     def __init__(
         self,
         simulator: Simulator,
