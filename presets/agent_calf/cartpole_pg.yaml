@@ -1,0 +1,33 @@
+_target_: src.scenario.calf_agent.calfv.AgentCALFV
+env: 
+  _target_: src.rgenv.RgEnv
+  simulator: ~ simulator
+  running_objective: ~ running_objective
+safe_policy:
+  _target_: src.policy.CartpoleStabilizingPolicy
+  swingup_gain: 10
+  upright_gain: = numpy.array([70, 2., 20., 0.])
+  pid_loc_thr: 0.35
+  pid_scale_thr: 10.0
+  clip_bounds: = numpy.array([-1., 1.])
+sampling_time: $ common.sampling_time
+critic_safe_decay_param: 0.01
+critic_regularization_param: 3000
+critic_lb_parameter: 1.0E-4
+critic_td_n: 2
+critic_batch_size: 3
+relax_probability_min: 0.5
+relax_probability_max: 0.0
+relax_probability_stabilize_global_step: 10000
+is_propagate_safe_weights: False
+is_nominal_first: True
+critic_model:
+  _target_: regelum.model.ModelQuadLin
+  quad_matrix_type: symmetric
+  is_with_linear_terms: False
+  dim_inputs: 4
+  add_random_init_noise: False
+  weight_max: 500
+running_objective: ~ running_objective
+observer:
+  _target_: regelum.observer.ObserverTrivial
