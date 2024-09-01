@@ -54,6 +54,7 @@ class InvertedPendulumEnergyBased(Policy):
         action_min: float,
         action_max: float,
         switch_loc: float,
+        switch_vel_loc: float,
         pd_coeffs: np.ndarray,
         system: Union[InvertedPendulum, InvertedPendulumWithFriction],
     ):
@@ -458,3 +459,11 @@ class LunarLanderStabilizingPolicy(Policy):
         fy = np.zeros_like(fx)
         action = np.hstack((fx, fy))
         return action
+
+
+class PendulumGoalReachingFunction:
+    def __init__(self, goal_threshold: float):
+        self.goal_threshold = goal_threshold
+    def __call__(self, observation: np.ndarray) -> bool:
+        angle = observation[0, 0]
+        return 1 - np.cos(angle) <= self.goal_threshold

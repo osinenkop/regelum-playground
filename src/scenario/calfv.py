@@ -356,16 +356,16 @@ class CALFScenario(CleanRLScenario):
         simulator: Simulator,
         running_objective: RunningObjective,
         total_timesteps: int,
-        agent_calfv: AgentCALFV,
+        agent_calf: AgentCALFV,
     ):
         super().__init__(
             simulator, running_objective, total_timesteps=total_timesteps, device="cpu"
         )
-        self.agent_calfv = agent_calfv
+        self.agent_calfv = agent_calf
 
     def run(self):
         obs, _ = self.envs.reset()
-        self.agent_calfv.reset(obs=obs, global_step=0)
+        self.agent_calfv.reset(obs_init=obs, global_step=0)
 
         for global_step in range(self.total_timesteps):
             action = self.agent_calfv.get_action(obs)
@@ -382,7 +382,7 @@ class CALFScenario(CleanRLScenario):
                 global_step,
             )
             if "final_info" in infos:
-                self.agent_calfv.reset(obs=obs, global_step=global_step)
+                self.agent_calfv.reset(obs_init=obs, global_step=global_step)
                 self.save_episodic_return(
                     global_step=global_step, episodic_return=self.value
                 )

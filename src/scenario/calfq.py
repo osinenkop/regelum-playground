@@ -131,7 +131,7 @@ class AgentCALFQ:
 
     def run_obj(self, observation, action):
         return to_scalar(
-            self.running_objective(observation.reshape(-1), action.reshape(-1))
+            self.running_objective(observation.reshape(1, -1), action.reshape(1, -1))
         )
 
     def critic_model(self, critic_weight_tensor, observation, action):
@@ -538,7 +538,7 @@ class AgentCALFQ:
         self.critic_weight_tensor = np.copy(critic_weight_tensor_init)
         self.critic_weight_tensor_safe = np.copy(critic_weight_tensor_init)
         self.clock = 1
-        self.nominal_policy.reset()
+        # self.nominal_policy.reset()
         self.action_safe = self.nominal_policy.get_action(obs_init)
         self.action_curr = np.copy(self.action_safe)
         self.observation_safe = np.copy(obs_init)

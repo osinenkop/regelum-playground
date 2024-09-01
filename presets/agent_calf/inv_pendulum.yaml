@@ -1,0 +1,34 @@
+_target_: src.scenario.calfq.AgentCALFQ
+
+nominal_policy:
+  _target_: src.policy.InvertedPendulumEnergyBased
+
+  gain: 0.03 
+  action_min: -0.1
+  action_max: 0.1
+  pd_coeffs: = [0.6, 0.2]
+  switch_vel_loc: 0.2
+  switch_loc: = np.cos(np.pi / 10)
+  system: ~ system
+running_objective: ~ running_objective
+system: ~ system
+action_sampling_period: $ common.sampling_time
+goal_reaching_func:
+  _target_: src.policy.PendulumGoalReachingFunction
+  goal_threshold: 0.4
+critic_struct: quad-mix
+critic_weights_init: = np.array([7196.45, 323.51, 34839.243, -97235.899, 13453.018])
+critic_learn_rate: 0.001
+critic_num_grad_steps: 1
+buffer_size: 10
+actor_opt_method: SLSQP
+actor_opt_options:
+  maxiter: 40
+  disp: False
+relax_probability_min: 0.0
+relax_probability_max: 0.999
+use_grad_descent: True
+use_decay_constraint: False
+use_kappa_constraint: False
+check_persistence_of_excitation: True
+critic_weight_change_penalty_coeff: 0.0

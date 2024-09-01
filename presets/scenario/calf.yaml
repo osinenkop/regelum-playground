@@ -1,6 +1,6 @@
 _target_: src.scenario.calfv.CALFScenario
 
-agent_calfv: ~ agent_calfv
+agent_calf: ~ agent_calf
 simulator: ~ simulator
 running_objective: ~ running_objective
 total_timesteps: 50000
