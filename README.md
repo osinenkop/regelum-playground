@@ -19,6 +19,7 @@
    * [Proximal Policy Optimizaion on Inverted Pendulum](#proximal-policy-optimizaion-on-inverted-pendulum)
    * [Soft Actor-Critic (SAC) on Inverted Pendulum with Gym-like Observation](#soft-actor-critic-sac-on-inverted-pendulum-with-gym-like-observation)
    * [Twin Delayed Deep Deterministic Policy Gradient (TD3) on Inverted Pendulum with Gym-like Observation](#twin-delayed-deep-deterministic-policy-gradient-td3-on-inverted-pendulum-with-gym-like-observation)
+   * [CALF algorithm](#calf-algorithm)
 - [Repo structure](#repo-structure)
 
 <!-- TOC end -->
@@ -227,6 +228,27 @@ python run.py \
 > **Note:**
 >
 > For the `--fps` parameter, you can select any suitable value to ensure a smooth experience (e.g., `--fps=2`, `--fps=10`, `--fps=20`, etc.).
+
+Here is the new section for the README:
+
+
+
+<!-- TOC --><a name="calf-algorithm"></a>
+### CALF algorithm
+
+To run the CALF algorithm on the pendulum system, use the following command:
+
+```shell
+python run.py scenario=calfq system=inv_pendulum --interactive --fps=10
+```
+
+The CALF algorithm also works with other systems such as `lunar_lander` and `3wrobot_kin_rg`. Note that `3wrobot_kin_rg` is the system that is natively imported from regelum without overriding the system parameters. For these systems, use the following command:
+
+```shell
+python run.py scenario=calfv system=<system_name> --interactive --fps=10
+```
+
+Replace `<system_name>` with the desired system, e.g., `lunar_lander` or `3wrobot_kin_rg`.
 
 <!-- TOC --><a name="repo-structure"></a>
 ## Repo structure
