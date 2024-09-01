@@ -46,6 +46,37 @@ class AgentCALFQ:
         relax_probability_stabilize_global_step: int = 3000,
         relax_factor: float = 0.9999999999,
     ):
+        """Initialize the AgentCALFQ.
+
+        This method sets up the agent with the given parameters, including the nominal policy,
+        system, relaxation probabilities, goal reaching function, running objective, action
+        sampling period, critic learning rate, buffer size, and various other settings.
+
+        Args:
+            nominal_policy: The nominal policy used by the agent.
+            system: The system object representing the environment.
+            relax_probability_min: The minimum relaxation probability.
+            relax_probability_max: The maximum relaxation probability.
+            goal_reaching_func: A function to determine if the goal is reached based on the observation.
+            running_objective: A function to calculate the running objective based on the observation and action.
+            action_sampling_period: The period for sampling actions.
+            critic_learn_rate: The learning rate for the critic.
+            critic_num_grad_steps: The number of gradient steps for the critic.
+            buffer_size: The size of the buffer for storing experiences.
+            actor_opt_method: The optimization method for the actor.
+            actor_opt_options: The options for the actor optimization method.
+            use_grad_descent: Whether to use gradient descent for optimization.
+            use_decay_constraint: Whether to use a decay constraint.
+            use_kappa_constraint: Whether to use a kappa constraint.
+            check_persistence_of_excitation: Whether to check for persistence of excitation.
+            critic_weight_change_penalty_coeff: The penalty coefficient for changes in critic weights.
+            discount_factor: The discount factor for future rewards.
+            critic_weights_init: The initial weights for the critic.
+            critic_struct: The structure of the critic.
+            safe_only: Whether to use only safe actions.
+            relax_probability_stabilize_global_step: The global step at which the relaxation probability stabilizes.
+            relax_factor: The factor by which the relaxation probability is reduced.
+        """
         self.relax_factor = relax_factor
         self.relax_probability_stabilize_global_step = (
             relax_probability_stabilize_global_step

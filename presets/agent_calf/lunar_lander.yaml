@@ -1,4 +1,4 @@
-_target_: src.scenario.calfv.AgentCALFV
+_target_: src.scenario.calf_agent.calfv.AgentCALFV
 
 env:
   _target_: src.rgenv.RgEnv

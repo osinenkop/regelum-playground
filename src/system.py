@@ -43,8 +43,7 @@ class MyThreeWheeledRobotKinematic(ThreeWheeledRobotKinematic):
 @ThreeWheeledRobotAnimationWithSpot.attach
 @DefaultAnimation.attach
 @detach
-class ThreeWheeledRobotKinematicWithSpot(MyThreeWheeledRobotKinematic):
-    ...
+class ThreeWheeledRobotKinematicWithSpot(MyThreeWheeledRobotKinematic): ...
 
 
 class InvertedPendulum(InvertedPendulum):

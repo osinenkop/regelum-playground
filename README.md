@@ -239,13 +239,13 @@ Here is the new section for the README:
 To run the CALF algorithm on the pendulum system, use the following command:
 
 ```shell
-python run.py scenario=calfq system=inv_pendulum --interactive --fps=10
+python run.py scenario=calf system=inv_pendulum --interactive --fps=10
 ```
 
 The CALF algorithm also works with other systems such as `lunar_lander` and `3wrobot_kin_rg`. Note that `3wrobot_kin_rg` is the system that is natively imported from regelum without overriding the system parameters. For these systems, use the following command:
 
 ```shell
-python run.py scenario=calfv system=<system_name> --interactive --fps=10
+python run.py scenario=calf system=<system_name> --interactive --fps=10
 ```
 
 Replace `<system_name>` with the desired system, e.g., `lunar_lander` or `3wrobot_kin_rg`.

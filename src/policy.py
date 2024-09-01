@@ -464,6 +464,7 @@ class LunarLanderStabilizingPolicy(Policy):
 class PendulumGoalReachingFunction:
     def __init__(self, goal_threshold: float):
         self.goal_threshold = goal_threshold
+
     def __call__(self, observation: np.ndarray) -> bool:
         angle = observation[0, 0]
         return 1 - np.cos(angle) <= self.goal_threshold

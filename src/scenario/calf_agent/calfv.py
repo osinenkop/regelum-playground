@@ -11,9 +11,6 @@ from src.rgenv import RgEnv
 from regelum.data_buffers import DataBuffer
 import numpy as np
 from regelum.observer import Observer, ObserverTrivial, ObserverReference
-from .base import CleanRLScenario
-from regelum.simulator import Simulator
-from regelum.objective import RunningObjective
 
 
 class CriticCALF(Critic):
@@ -348,43 +345,3 @@ class AgentCALFV:
                 self.critic.cache_weights(self.cached_critic_weights)
         else:
             self.critic.cache_weights(np.copy(self.critic_weights_init))
-
-
-class CALFScenario(CleanRLScenario):
-    def __init__(
-        self,
-        simulator: Simulator,
-        running_objective: RunningObjective,
-        total_timesteps: int,
-        agent_calf: AgentCALFV,
-    ):
-        super().__init__(
-            simulator, running_objective, total_timesteps=total_timesteps, device="cpu"
-        )
-        self.agent_calfv = agent_calf
-
-    def run(self):
-        obs, _ = self.envs.reset()
-        self.agent_calfv.reset(obs_init=obs, global_step=0)
-
-        for global_step in range(self.total_timesteps):
-            action = self.agent_calfv.get_action(obs)
-
-            self.state = self.envs.envs[0].env.state.reshape(1, -1)
-            self.time = self.envs.envs[0].env.simulator.time
-            obs, rewards, terminations, truncations, infos = self.envs.step(action)
-            self.post_compute_action(
-                self.state,
-                obs,
-                action,
-                float(rewards.reshape(-1)),
-                self.time,
-                global_step,
-            )
-            if "final_info" in infos:
-                self.agent_calfv.reset(obs_init=obs, global_step=global_step)
-                self.save_episodic_return(
-                    global_step=global_step, episodic_return=self.value
-                )
-                self.reload_scenario()
-                self.reset_episode()

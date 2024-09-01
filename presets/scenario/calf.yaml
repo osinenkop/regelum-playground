@@ -1,4 +1,4 @@
-_target_: src.scenario.calfv.CALFScenario
+_target_: src.scenario.calf.CALFScenario
 
 agent_calf: ~ agent_calf
 simulator: ~ simulator

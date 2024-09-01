@@ -1,6 +1,7 @@
 """
 Contains auxiliary functions.
 """
+
 import numpy as np
 from numpy.random import rand
 import scipy.stats as st

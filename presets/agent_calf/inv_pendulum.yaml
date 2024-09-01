@@ -1,4 +1,4 @@
-_target_: src.scenario.calfq.AgentCALFQ
+_target_: src.scenario.calf_agent.calfq.AgentCALFQ
 
 nominal_policy:
   _target_: src.policy.InvertedPendulumEnergyBased
