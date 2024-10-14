@@ -38,6 +38,12 @@ It showcases various dynamical systems and controllers (also called policies).
 
 If you are working in Windows, it is recommended to use WSL and, possibly, a display server like Xming to properly output graphics from WSL.
 Before installing the [`requirements.txt`](./requirements.txt), it is recommended to create a virtual environment for your project, say, `pyenv` or `virtualenv`. The instructions on these are standard and may be found on the web.
+Make sure to install `pip`, say, via:
+
+```shell
+sudo apt-get install python3-pip
+```
+
 For instance, in case of `virtualenv`, install, create a virtual environment, e.g., `rgenv` and then activate it, being in the folder into which you cloned the repo:
 
 ```shell
@@ -46,7 +52,13 @@ python -m venv rgenv
 source rgenv/bin/activate
 ```
 
-Then, install necessary packages:
+In case of errors creating a virtual environment, try installing the latest `venv`:
+
+```shell
+sudo apt-get install python3-venv 
+```
+
+When the virtual environment is created, install necessary packages:
 
 ```shell
 pip install -r requirements.txt
