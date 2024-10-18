@@ -38,19 +38,40 @@ It showcases various dynamical systems and controllers (also called policies).
 
 If you are working in Windows, it is recommended to use WSL and, possibly, a display server like Xming to properly output graphics from WSL.
 Before installing the [`requirements.txt`](./requirements.txt), it is recommended to create a virtual environment for your project, say, `pyenv` or `virtualenv`. The instructions on these are standard and may be found on the web.
-For instance, in case of `virtualenv`, install, create a virtual environment, e.g., `rgenv` and then activate it, being in the folder into which you cloned the repo:
+
+First of all, make sure you are working with Python<=3.11 to avoid packge building problems.
+Under Ubuntu 24, it do this, for instance:
 
 ```shell
-pip install virtualenv
-python -m venv rgenv
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install python3.11
+```
+
+Install `virtualenv`:
+
+```shell
+sudo apt-get install python3.11-venv
+```
+
+Create a virtual environment (here called `rgenv`):
+
+```shell
+python3.11 -m venv rgenv
+```
+
+Activate it:
+
+```shell
 source rgenv/bin/activate
 ```
 
-Then, install necessary packages:
+When the virtual environment is created, install necessary packages:
 
 ```shell
 pip install -r requirements.txt
 ```
+
 <!-- TOC --><a name="ready-examples"></a>
 ## Ready examples
 
@@ -179,7 +200,9 @@ python run.py \
     scenario=ppo_scenario \
     system=inv_pendulum \
     common.time_final=5 \
-    scenario.N_episodes=1 
+    scenario.N_episodes=1 \
+    --interactive \
+    --fps=10
 ```
 
 
