@@ -1,4 +1,4 @@
-_target_: src.system.InvertedPendulumTmp
+_target_: src.system.InvertedPendulumLooseBounds
 
 # To adjust system parameters, uncomment the code below
 

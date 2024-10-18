@@ -45,7 +45,6 @@ class MyThreeWheeledRobotKinematic(ThreeWheeledRobotKinematic):
 @detach
 class ThreeWheeledRobotKinematicWithSpot(MyThreeWheeledRobotKinematic): ...
 
-
 class InvertedPendulum(InvertedPendulum):
     """The parameters of this system roughly resemble those of a Quanser Rotary Inverted Pendulum."""
 
@@ -73,6 +72,32 @@ class InvertedPendulum(InvertedPendulum):
 
         return Dstate
 
+class InvertedPendulumLooseBounds(InvertedPendulum):
+    """The parameters of this system roughly resemble those of a Quanser Rotary Inverted Pendulum."""
+
+    # _parameters = {"mass": 0.127, "grav_const": 9.81, "length": 0.337}
+    # _action_bounds = [[-0.5, 0.5]]
+
+    def pendulum_moment_inertia(self):
+        return self._parameters["mass"] * self._parameters["length"] ** 2 / 3
+
+    def _compute_state_dynamics(self, time, state, inputs):
+        Dstate = rg.zeros(
+            self.dim_state,
+            prototype=(state, inputs),
+        )
+
+        mass, grav_const, length = (
+            self._parameters["mass"],
+            self._parameters["grav_const"],
+            self._parameters["length"],
+        )
+        Dstate[0] = state[1]
+        Dstate[1] = (
+            grav_const * mass * length * rg.sin(state[0]) / 2 + inputs[0]
+        ) / self.pendulum_moment_inertia()
+
+        return Dstate
 
 class InvertedPendulumWithGymObservation(InvertedPendulum):
     _dim_observation = 3
