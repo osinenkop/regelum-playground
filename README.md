@@ -200,7 +200,9 @@ python run.py \
     scenario=ppo_scenario \
     system=inv_pendulum \
     common.time_final=5 \
-    scenario.N_episodes=1 
+    scenario.N_episodes=1 \
+    --interactive \
+    --fps=10
 ```
 
 
