@@ -199,10 +199,12 @@ Notice how the robot avoids the spot with high cost
 python run.py \
     scenario=ppo_scenario \
     system=inv_pendulum \
-    common.time_final=5 \
-    scenario.N_episodes=1 \
+    common.time_final=10 \
+    scenario.N_episodes=2 \
     --interactive \
-    --fps=10
+    --fps=10 \
+    scenario.policy_model.std=0.01 \
+    scenario.policy_model.normalize_output_coef=0.0001
 ```
 
 
