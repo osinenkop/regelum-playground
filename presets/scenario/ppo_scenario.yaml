@@ -14,8 +14,8 @@ running_objective:
     is_with_linear_terms: False
 simulator: ~ simulator
 running_objective_type: cost
-discount_factor: 0.7
-N_iterations: 100
+discount_factor: 0.95
+N_iterations: 200
 N_episodes: 2
 critic_td_n: 1
 gae_lambda: 0.0
