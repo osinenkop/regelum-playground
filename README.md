@@ -197,7 +197,7 @@ Notice how the robot avoids the spot with high cost
 
 ```
 python run.py \
-    scenario=ppo_scenario \
+    scenario=ppo_scenario scenario.discount_factor=0.7\
     system=inv_pendulum \
     common.time_final=10 \
     scenario.N_episodes=2 \
