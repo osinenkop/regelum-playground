@@ -1,2 +1,2 @@
-regelum-control==0.3.2
+regelum-control==0.3.3
 stable_baselines3==2.3.2 # For SAC and TD3. They use ReplayBuffer from stable-baselines3.
