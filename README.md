@@ -20,7 +20,6 @@
    * [Soft Actor-Critic (SAC) on Pendulum with Gym-like Observation](#soft-actor-critic-sac-on-inverted-pendulum-with-gym-like-observation)
    * [Twin Delayed Deep Deterministic Policy Gradient (TD3) on Pendulum with Gym-like Observation](#twin-delayed-deep-deterministic-policy-gradient-td3-on-inverted-pendulum-with-gym-like-observation)
    * [CALF algorithm](#calf-algorithm)
-- [Repo structure](#repo-structure)
 
 <!-- TOC end -->
 
@@ -279,48 +278,4 @@ python run.py scenario=calf system=<system_name> --interactive --fps=10
 
 Replace `<system_name>` with the desired system, e.g., `lunar_lander`, `3wrobot_kin_rg` or `cartpole_pg`.
 
-<!-- TOC --><a name="repo-structure"></a>
-## Repo structure
-
-- [`run.py`](./run.py): The main executable script that sets up and runs the simulation.
-- [`src/`](./src/): Contains the source code of the repo.
-    - [`policy.py`](./src/policy.py): Implements various controllers including PD, energy-based, backstepping, and MPC controllers.
-    - [`system.py`](./src/system.py): Implements different dynamical systems like Pendulum, Pendulum with friction, 3-wheeled robot, etc.
-    - [`scenario.py`](./src/scenario.py): Defines different scenarios including MPC, PPO, SAC, TD3, and CALF algorithms.
-    - [`running_objective.py`](./src/running_objective.py): Implements various running objectives for different scenarios.
-    - [`animator.py`](./src/animator.py): Contains animation classes for visualizing different systems.
-    - [`model.py`](./src/model.py): Defines neural network models used in reinforcement learning algorithms.
-- [`presets/`](./presets/): Houses configuration files.
-    - [`common/`](./presets/common): General configurations (sampling time, etc.).
-    - [`policy/`](./presets/policy/): Controller-specific configurations.
-        - [`pd.yaml`](./presets/policy/pd.yaml): Settings for the proportional-derivative (PD) controller.
-        - [`energy_based.yaml`](./presets/policy/energy_based.yaml): Settings for the energy-based controller.
-        - [`energy_based_friction_compensation.yaml`](./presets/policy/energy_based_friction_compensation.yaml): Settings for the energy-based controller with friction compensation.
-        - [`energy_based_friction_adaptive.yaml`](./presets/policy/energy_based_friction_adaptive.yaml): Settings for the adaptive energy-based controller with adaptive friction.
-        - [`backstepping.yaml`](./presets/policy/backstepping.yaml): Settings for the backstepping controller.
-        - [`motor_pd.yaml`](./presets/policy/motor_pd.yaml): Settings for the PD controller with motor dynamics.
-        - [`3wrobot_kin_min_grad_clf.yaml`](./presets/policy/3wrobot_kin_min_grad_clf.yaml): Settings for the Lyapunov-based controller for kinematic 3-wheeled robot.
-        - [`3wrobot_dyn_min_grad_clf.yaml`](./presets/policy/3wrobot_dyn_min_grad_clf.yaml): Settings for the backstepping controller for dynamic 3-wheeled robot.
-    - [`scenario/`](./presets/scenario/): Scenario configuration folder.
-        - [`scenario.yaml`](./presets/scenario/scenario.yaml): General scenario settings.
-        - [`mpc_scenario.yaml`](./presets/scenario/mpc_scenario.yaml): Settings for the Model Predictive Control scenario.
-        - [`ppo_scenario.yaml`](./presets/scenario/ppo_scenario.yaml): Settings for the Proximal Policy Optimization scenario.
-        - [`sac.yaml`](./presets/scenario/sac.yaml): Settings for the Soft Actor-Critic scenario.
-        - [`td3.yaml`](./presets/scenario/td3.yaml): Settings for the Twin Delayed DDPG scenario.
-        - [`calf.yaml`](./presets/scenario/calf.yaml): Settings for the CALF algorithm scenario.
-    - [`simulator/`](./presets/simulator/): Simulator configuration folder.
-        - [`casadi.yaml`](./presets/simulator/casadi.yaml): Configurations for the CasADi RK simulator.
-        - [`casadi_random_state_init.yaml`](./presets/simulator/casadi_random_state_init.yaml): Configurations for CasADi simulator with random state initialization.
-    - [`system/`](./presets/system/): System configuration folder.
-        - [`pendulum_loose_bounds.yaml`](./presets/system/pendulum_loose_bounds.yaml): Settings for the pendulum system with loose bounds.
-        - [`pendulum_with_friction.yaml`](./presets/system/pendulum_with_friction.yaml): Settings for the pendulum system with friction.
-        - [`pendulum_with_motor.yaml`](./presets/system/pendulum_with_motor.yaml): Settings for the pendulum system with motor dynamics.
-        - [`3wrobot_kin.yaml`](./presets/system/3wrobot_kin.yaml): Settings for the kinematic 3-wheeled robot system.
-        - [`3wrobot_dyn.yaml`](./presets/system/3wrobot_dyn.yaml): Settings for the dynamic 3-wheeled robot system.
-        - [`3wrobot_kin_with_spot.yaml`](./presets/system/3wrobot_kin_with_spot.yaml): Settings for the kinematic 3-wheeled robot system with a spot.
-        - [`pendulum_with_gym_observation.yaml`](./presets/system/pendulum_with_gym_observation.yaml): Settings for the pendulum system with Gym-like observations.
-    - [`initial_conditions/`](./presets/initial_conditions/): Initial conditions configuration folder.
-        - [`3wrobot_kin.yaml`](./presets/initial_conditions/3wrobot_kin.yaml): Initial conditions for the kinematic 3-wheeled robot.
-        - [`3wrobot_kin_with_spot.yaml`](./presets/initial_conditions/3wrobot_kin_with_spot.yaml): Initial conditions for the kinematic 3-wheeled robot with a spot.
-        - [`3wrobot_dyn.yaml`](./presets/initial_conditions/3wrobot_dyn.yaml): Initial conditions for the dynamic 3-wheeled robot.
 
