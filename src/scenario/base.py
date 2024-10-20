@@ -18,6 +18,7 @@ from regelum.callback import Callback
 from src.rgenv import RgEnv
 import mlflow
 from typing import Any
+import torch
 
 
 class CleanRLScenario(Scenario):
@@ -51,7 +52,11 @@ class CleanRLScenario(Scenario):
             device: The device (e.g., 'cpu' or 'cuda') to run computations on.
         """
         self.total_timesteps = total_timesteps
-        self.device = device
+        self.device = (
+            "cpu"
+            if device.startswith("cuda") and not torch.cuda.is_available()
+            else device
+        )
         self.simulator = simulator
         self.running_objective = running_objective
 
