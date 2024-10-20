@@ -40,7 +40,7 @@ If you are working in Windows, it is recommended to use WSL and, possibly, a dis
 Before installing the [`requirements.txt`](./requirements.txt), it is recommended to create a virtual environment for your project, say, `pyenv` or `virtualenv`. The instructions on these are standard and may be found on the web.
 
 First of all, make sure you are working with Python<=3.11 to avoid packge building problems.
-Under Ubuntu 24, it do this, for instance:
+Under Ubuntu 24, do this, for instance:
 
 ```shell
 sudo add-apt-repository ppa:deadsnakes/ppa
