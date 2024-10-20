@@ -61,7 +61,17 @@ def angle_normalize(angle):
 
 class GymPendulumRunningObjective:
     def __call__(self, observation, action):
-        cos_angle = observation[0, 0]
-        angle_vel = observation[0, 2]
-        torque = action[0, 0]
-        return np.arccos(cos_angle) ** 2 + 0.1 * angle_vel**2 + 0.001 * torque**2
+        if observation.shape[1] == 3:
+            cos_angle = observation[0, 0]
+            sin_angle = observation[0, 1]
+            angle_vel = observation[0, 2]
+            torque = action[0, 0]
+            angle = np.arctan2(sin_angle, cos_angle)
+            return angle_normalize(angle) ** 2 + 0.1 * angle_vel**2 + 0.001 * torque**2
+        elif observation.shape[1] == 2:
+            angle = observation[0, 0]
+            angle_vel = observation[0, 1]
+            torque = action[0, 0]
+            return angle_normalize(angle) ** 2 + 0.1 * angle_vel**2 + 0.001 * torque**2
+        else:
+            raise ValueError("Invalid observation shape")

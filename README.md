@@ -81,7 +81,7 @@ Below are examples with respective terminal run commands.
 ### Proportional-derivative (PD) controller for Pendulum
 
 ```shell
-python run.py policy=pd system=pendulum --interactive --fps=10
+python run.py policy=pd system=pendulum_loose_bounds --interactive --fps=10
 ```    
 
 Observe it doesn't work with the default action bounds.
@@ -90,7 +90,7 @@ Further, we will see how the energy-based controller does the job.
 To run the PD controller with custom action bounds:
 
 ```shell
-python run.py policy=pd system=pendulum policy.action_min=-2 policy.action_max=2 --interactive --fps=10
+python run.py policy=pd system=pendulum_loose_bounds policy.action_min=-2 policy.action_max=2 --interactive --fps=10
 ```  
 
 Making the bounds sufficiently large will help the PD controller to upswing and upright hold the pendulum.
@@ -99,7 +99,7 @@ Making the bounds sufficiently large will help the PD controller to upswing and 
 ### Energy-based controller for Pendulum
 
 ```shell
-python run.py policy=energy_based system=pendulum --interactive --fps=10
+python run.py policy=energy_based system=pendulum_loose_bounds --interactive --fps=10
 ```  
 
 <!-- TOC --><a name="energy-based-controller-for-inverted-pendulum-with-joint-friction"></a>
@@ -282,22 +282,45 @@ Replace `<system_name>` with the desired system, e.g., `lunar_lander`, `3wrobot_
 <!-- TOC --><a name="repo-structure"></a>
 ## Repo structure
 
-- [`run.py`](./run.py): The main executable script.
+- [`run.py`](./run.py): The main executable script that sets up and runs the simulation.
 - [`src/`](./src/): Contains the source code of the repo.
-    - [`policy.py`](./src/policy.py): Implements the PD and energy-based controllers.
-    - [`system.py`](./src/system.py): Implements the Pendulum system and Pendulum system with friction.
+    - [`policy.py`](./src/policy.py): Implements various controllers including PD, energy-based, backstepping, and MPC controllers.
+    - [`system.py`](./src/system.py): Implements different dynamical systems like Pendulum, Pendulum with friction, 3-wheeled robot, etc.
+    - [`scenario.py`](./src/scenario.py): Defines different scenarios including MPC, PPO, SAC, TD3, and CALF algorithms.
+    - [`running_objective.py`](./src/running_objective.py): Implements various running objectives for different scenarios.
+    - [`animator.py`](./src/animator.py): Contains animation classes for visualizing different systems.
+    - [`model.py`](./src/model.py): Defines neural network models used in reinforcement learning algorithms.
 - [`presets/`](./presets/): Houses configuration files.
-    - [`common/`](./presets/common): General configurations.
-        - [`common.yaml`](./presets/common/common.yaml): Settings for common variables (like sampling time).
+    - [`common/`](./presets/common): General configurations (sampling time, etc.).
     - [`policy/`](./presets/policy/): Controller-specific configurations.
         - [`pd.yaml`](./presets/policy/pd.yaml): Settings for the proportional-derivative (PD) controller.
         - [`energy_based.yaml`](./presets/policy/energy_based.yaml): Settings for the energy-based controller.
         - [`energy_based_friction_compensation.yaml`](./presets/policy/energy_based_friction_compensation.yaml): Settings for the energy-based controller with friction compensation.
         - [`energy_based_friction_adaptive.yaml`](./presets/policy/energy_based_friction_adaptive.yaml): Settings for the adaptive energy-based controller with adaptive friction.
-
-    - [`scenario/`](./presets/scenario/): Scenario configuration folder. Scenario is a top-level module in regelum.
-        - [`scenario.yaml`](./presets/scenario/scenario.yaml): Scenario settings.
-    - [`simulator`](./presets/simulator/): Simulator configuration folder.
-        - [`casadi.yaml`](./presets/simulator/casadi.yaml): Configurations for the [CasADi](https://web.casadi.org/) [RK](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods) simulator.
-
+        - [`backstepping.yaml`](./presets/policy/backstepping.yaml): Settings for the backstepping controller.
+        - [`motor_pd.yaml`](./presets/policy/motor_pd.yaml): Settings for the PD controller with motor dynamics.
+        - [`3wrobot_kin_min_grad_clf.yaml`](./presets/policy/3wrobot_kin_min_grad_clf.yaml): Settings for the Lyapunov-based controller for kinematic 3-wheeled robot.
+        - [`3wrobot_dyn_min_grad_clf.yaml`](./presets/policy/3wrobot_dyn_min_grad_clf.yaml): Settings for the backstepping controller for dynamic 3-wheeled robot.
+    - [`scenario/`](./presets/scenario/): Scenario configuration folder.
+        - [`scenario.yaml`](./presets/scenario/scenario.yaml): General scenario settings.
+        - [`mpc_scenario.yaml`](./presets/scenario/mpc_scenario.yaml): Settings for the Model Predictive Control scenario.
+        - [`ppo_scenario.yaml`](./presets/scenario/ppo_scenario.yaml): Settings for the Proximal Policy Optimization scenario.
+        - [`sac.yaml`](./presets/scenario/sac.yaml): Settings for the Soft Actor-Critic scenario.
+        - [`td3.yaml`](./presets/scenario/td3.yaml): Settings for the Twin Delayed DDPG scenario.
+        - [`calf.yaml`](./presets/scenario/calf.yaml): Settings for the CALF algorithm scenario.
+    - [`simulator/`](./presets/simulator/): Simulator configuration folder.
+        - [`casadi.yaml`](./presets/simulator/casadi.yaml): Configurations for the CasADi RK simulator.
+        - [`casadi_random_state_init.yaml`](./presets/simulator/casadi_random_state_init.yaml): Configurations for CasADi simulator with random state initialization.
+    - [`system/`](./presets/system/): System configuration folder.
+        - [`pendulum_loose_bounds.yaml`](./presets/system/pendulum_loose_bounds.yaml): Settings for the pendulum system with loose bounds.
+        - [`pendulum_with_friction.yaml`](./presets/system/pendulum_with_friction.yaml): Settings for the pendulum system with friction.
+        - [`pendulum_with_motor.yaml`](./presets/system/pendulum_with_motor.yaml): Settings for the pendulum system with motor dynamics.
+        - [`3wrobot_kin.yaml`](./presets/system/3wrobot_kin.yaml): Settings for the kinematic 3-wheeled robot system.
+        - [`3wrobot_dyn.yaml`](./presets/system/3wrobot_dyn.yaml): Settings for the dynamic 3-wheeled robot system.
+        - [`3wrobot_kin_with_spot.yaml`](./presets/system/3wrobot_kin_with_spot.yaml): Settings for the kinematic 3-wheeled robot system with a spot.
+        - [`pendulum_with_gym_observation.yaml`](./presets/system/pendulum_with_gym_observation.yaml): Settings for the pendulum system with Gym-like observations.
+    - [`initial_conditions/`](./presets/initial_conditions/): Initial conditions configuration folder.
+        - [`3wrobot_kin.yaml`](./presets/initial_conditions/3wrobot_kin.yaml): Initial conditions for the kinematic 3-wheeled robot.
+        - [`3wrobot_kin_with_spot.yaml`](./presets/initial_conditions/3wrobot_kin_with_spot.yaml): Initial conditions for the kinematic 3-wheeled robot with a spot.
+        - [`3wrobot_dyn.yaml`](./presets/initial_conditions/3wrobot_dyn.yaml): Initial conditions for the dynamic 3-wheeled robot.
 

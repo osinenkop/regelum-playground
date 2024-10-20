@@ -60,3 +60,4 @@ class CALFScenario(CleanRLScenario):
                 )
                 self.reload_scenario()
                 self.reset_episode()
+                self.reset_iteration()
