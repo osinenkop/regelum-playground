@@ -1,4 +1,4 @@
-_target_: src.system.Pendulum
+_target_: src.system.PendulumLooseBounds
 
 # To adjust system parameters, uncomment the code below
 

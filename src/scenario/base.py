@@ -105,7 +105,8 @@ class CleanRLScenario(Scenario):
                 - step_id
                 - action
                 - running_objective
-                - current_value
+                - current_value (discounted but `None` due to not needing to track the discounted value)
+                - current_undiscounted_value
         """
         self.current_running_objective = reward
         self.value += reward
@@ -118,7 +119,8 @@ class CleanRLScenario(Scenario):
             "step_id": global_step,
             "action": action,
             "running_objective": reward,
-            "current_value": self.value,
+            "current_value": None,
+            "current_undiscounted_value": self.value,
         }
 
     @apply_callbacks()
@@ -178,7 +180,7 @@ class CleanRLScenario(Scenario):
         to be aware of the current state in the pipeline. This is a technical
         feature that facilitates proper callback execution and tracking.
         """
-        self.recent_value = self.value
+        self.recent_undiscounted_value = self.value
         self.value = 0
 
     def run(self):

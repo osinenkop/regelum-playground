@@ -4,21 +4,21 @@
 - [Getting started](#getting-started)
    * [Installation requirements](#installation-requirements)
 - [Ready examples](#ready-examples)
-   * [Proportional-derivative (PD) controller for inverted pendulum](#proportional-derivative-pd-controller-for-inverted-pendulum)
-   * [Energy-based controller for inverted pendulum](#energy-based-controller-for-inverted-pendulum)
-   * [Energy-based controller for inverted pendulum with joint friction](#energy-based-controller-for-inverted-pendulum-with-joint-friction)
-   * [Energy-based controller with friction compenstation for inverted pendulum with joint friction](#energy-based-controller-with-friction-compenstation-for-inverted-pendulum-with-joint-friction)
-   * [Adaptive energ-based controller for inverted pendulum with joint friction](#adaptive-energ-based-controller-for-inverted-pendulum-with-joint-friction)
-   * [Backstepping controller for inverted pendulum with motor dynamics](#backstepping-controller-for-inverted-pendulum-with-motor-dynamics)
-   * [PD controller for inverted pendulum with motor dynamics](#pd-controller-for-inverted-pendulum-with-motor-dynamics)
+   * [Proportional-derivative (PD) controller for Pendulum](#proportional-derivative-pd-controller-for-inverted-pendulum)
+   * [Energy-based controller for Pendulum](#energy-based-controller-for-inverted-pendulum)
+   * [Energy-based controller for Pendulum with joint friction](#energy-based-controller-for-inverted-pendulum-with-joint-friction)
+   * [Energy-based controller with friction compenstation for Pendulum with joint friction](#energy-based-controller-with-friction-compenstation-for-inverted-pendulum-with-joint-friction)
+   * [Adaptive energ-based controller for Pendulum with joint friction](#adaptive-energ-based-controller-for-inverted-pendulum-with-joint-friction)
+   * [Backstepping controller for Pendulum with motor dynamics](#backstepping-controller-for-inverted-pendulum-with-motor-dynamics)
+   * [PD controller for Pendulum with motor dynamics](#pd-controller-for-inverted-pendulum-with-motor-dynamics)
    * [Lyapunov-based controller for kinematic three-wheeled robot](#lyapunov-based-controller-for-kinematic-three-wheeled-robot)
    * [Backstepping controller for dynamic three-wheeled robot](#backstepping-controller-for-dynamic-three-wheeled-robot)
    * [Model-predictive controller for three-wheeled robot](#model-predictive-controller-for-three-wheeled-robot)
       + [On a plane with quadratic cost](#on-a-plane-with-quadratic-cost)
       + [On a plane with a Guassian spot of high cost](#on-a-plane-with-a-guassian-spot-of-high-cost)
-   * [Proximal Policy Optimizaion on Inverted Pendulum](#proximal-policy-optimizaion-on-inverted-pendulum)
-   * [Soft Actor-Critic (SAC) on Inverted Pendulum with Gym-like Observation](#soft-actor-critic-sac-on-inverted-pendulum-with-gym-like-observation)
-   * [Twin Delayed Deep Deterministic Policy Gradient (TD3) on Inverted Pendulum with Gym-like Observation](#twin-delayed-deep-deterministic-policy-gradient-td3-on-inverted-pendulum-with-gym-like-observation)
+   * [Proximal Policy Optimizaion on Pendulum](#proximal-policy-optimizaion-on-inverted-pendulum)
+   * [Soft Actor-Critic (SAC) on Pendulum with Gym-like Observation](#soft-actor-critic-sac-on-inverted-pendulum-with-gym-like-observation)
+   * [Twin Delayed Deep Deterministic Policy Gradient (TD3) on Pendulum with Gym-like Observation](#twin-delayed-deep-deterministic-policy-gradient-td3-on-inverted-pendulum-with-gym-like-observation)
    * [CALF algorithm](#calf-algorithm)
 - [Repo structure](#repo-structure)
 
@@ -78,7 +78,7 @@ pip install -r requirements.txt
 Below are examples with respective terminal run commands. 
 
 <!-- TOC --><a name="proportional-derivative-pd-controller-for-inverted-pendulum"></a>
-### Proportional-derivative (PD) controller for inverted pendulum
+### Proportional-derivative (PD) controller for Pendulum
 
 ```shell
 python run.py policy=pd system=pendulum --interactive --fps=10
@@ -96,14 +96,14 @@ python run.py policy=pd system=pendulum policy.action_min=-2 policy.action_max=2
 Making the bounds sufficiently large will help the PD controller to upswing and upright hold the pendulum.
 
 <!-- TOC --><a name="energy-based-controller-for-inverted-pendulum"></a>
-### Energy-based controller for inverted pendulum
+### Energy-based controller for Pendulum
 
 ```shell
 python run.py policy=energy_based system=pendulum --interactive --fps=10
 ```  
 
 <!-- TOC --><a name="energy-based-controller-for-inverted-pendulum-with-joint-friction"></a>
-### Energy-based controller for inverted pendulum with joint friction
+### Energy-based controller for Pendulum with joint friction
 
 ```shell
 python run.py policy=energy_based system=pendulum_with_friction --interactive --fps=10
@@ -112,7 +112,7 @@ python run.py policy=energy_based system=pendulum_with_friction --interactive --
 Observe it doesn't work due to ignorance of friction.
 
 <!-- TOC --><a name="energy-based-controller-with-friction-compenstation-for-inverted-pendulum-with-joint-friction"></a>
-### Energy-based controller with friction compenstation for inverted pendulum with joint friction
+### Energy-based controller with friction compenstation for Pendulum with joint friction
 
 ```shell
 python run.py policy=energy_based_friction_compensation system=pendulum_with_friction --interactive --fps=10
@@ -121,7 +121,7 @@ python run.py policy=energy_based_friction_compensation system=pendulum_with_fri
 This works better than the last one.
 
 <!-- TOC --><a name="adaptive-energ-based-controller-for-inverted-pendulum-with-joint-friction"></a>
-### Adaptive energ-based controller for inverted pendulum with joint friction
+### Adaptive energ-based controller for Pendulum with joint friction
 
 ```shell
 python run.py policy=energy_based_friction_adaptive system=pendulum_with_friction --interactive --fps=10
@@ -130,7 +130,7 @@ python run.py policy=energy_based_friction_adaptive system=pendulum_with_frictio
 This should also work.
 
 <!-- TOC --><a name="backstepping-controller-for-inverted-pendulum-with-motor-dynamics"></a>
-### Backstepping controller for inverted pendulum with motor dynamics
+### Backstepping controller for Pendulum with motor dynamics
 
 This showcases the use of backstepping.
 
@@ -139,7 +139,7 @@ python run.py policy=backstepping system=pendulum_with_motor --interactive --fps
 ``` 
 
 <!-- TOC --><a name="pd-controller-for-inverted-pendulum-with-motor-dynamics"></a>
-### PD controller for inverted pendulum with motor dynamics
+### PD controller for Pendulum with motor dynamics
 
 ```shell
 python run.py policy=motor_pd system=pendulum_with_motor --interactive --fps=10 
@@ -193,12 +193,12 @@ python run.py \
 Notice how the robot avoids the spot with high cost
 
 <!-- TOC --><a name="proximal-policy-optimizaion-on-inverted-pendulum"></a>
-### Proximal Policy Optimizaion on Inverted Pendulum
+### Proximal Policy Optimizaion on Pendulum
 
 ```
 python run.py \
-    scenario=ppo_scenario scenario.discount_factor=0.7\
-    system=pendulum \
+    scenario=ppo_scenario scenario.discount_factor=0.7 \
+    system=pendulum_loose_bounds \
     common.time_final=10 \
     scenario.N_episodes=2 \
     --interactive \
@@ -209,7 +209,7 @@ python run.py \
 
 
 <!-- TOC --><a name="soft-actor-critic-sac-on-inverted-pendulum-with-gym-like-observation"></a>
-### Soft Actor-Critic (SAC) on Inverted Pendulum with Gym-like Observation
+### Soft Actor-Critic (SAC) on Pendulum with Gym-like Observation
 
 ```bash
 python run.py \
@@ -220,23 +220,27 @@ python run.py \
     scenario.policy_lr=0.00079 \
     scenario.q_lr=0.00025 \
     scenario.alpha=0.0085 \
-    +seed=4 
+    +seed=4 \
+    --interactive \
+    --fps=10
 ```
 > **Note:**
 >
 > You can set any seed you want by modifying the `+seed` parameter. For example, you can use `+seed=42` or any other integer value. Different seeds may lead to different training outcomes due to the stochastic nature of the algorithm.
 
 <!-- TOC --><a name="twin-delayed-deep-deterministic-policy-gradient-td3-on-inverted-pendulum-with-gym-like-observation"></a>
-### Twin Delayed Deep Deterministic Policy Gradient (TD3) on Inverted Pendulum with Gym-like Observation
+### Twin Delayed Deep Deterministic Policy Gradient (TD3) on Pendulum with Gym-like Observation
 
-To run the TD3 algorithm on the inverted pendulum system with a gym-like observation space, use the following command:
+To run the TD3 algorithm on the Pendulum system with a gym-like observation space, use the following command:
 
 ```bash
 python run.py \
     scenario=td3 \
     system=pendulum_with_gym_observation \
     simulator=casadi_random_state_init  \
-    +seed=4   
+    +seed=4  \
+    --interactive \
+    --fps=10
 ```
 
 > **Note:**
@@ -281,7 +285,7 @@ Replace `<system_name>` with the desired system, e.g., `lunar_lander`, `3wrobot_
 - [`run.py`](./run.py): The main executable script.
 - [`src/`](./src/): Contains the source code of the repo.
     - [`policy.py`](./src/policy.py): Implements the PD and energy-based controllers.
-    - [`system.py`](./src/system.py): Implements the inverted pendulum system and inverted pendulum system with friction.
+    - [`system.py`](./src/system.py): Implements the Pendulum system and Pendulum system with friction.
 - [`presets/`](./presets/): Houses configuration files.
     - [`common/`](./presets/common): General configurations.
         - [`common.yaml`](./presets/common/common.yaml): Settings for common variables (like sampling time).

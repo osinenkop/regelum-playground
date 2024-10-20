@@ -14,13 +14,13 @@ defaults:
   - scenario: scenario
   - common: ${system}
   - initial_conditions: ${system}
-  - running_objective: ${system}
+  - optional running_objective: ${system}
   - optional agent_calf: ${system}
 
 callbacks:
   - regelum.callback.ScenarioStepLogger
   - regelum.callback.HistoricalDataCallback
-  - regelum.callback.ValueCallback
+  # - regelum.callback.ValueCallback
   - src.scenario.base.CleanRLCallback
 
 rehydra:

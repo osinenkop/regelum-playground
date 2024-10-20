@@ -60,8 +60,8 @@ def angle_normalize(angle):
 
 
 class GymPendulumRunningObjective:
-    def __call__(self, state, action):
-        angle = state[0, 0]
-        angle_vel = state[0, 1]
+    def __call__(self, observation, action):
+        cos_angle = observation[0, 0]
+        angle_vel = observation[0, 2]
         torque = action[0, 0]
-        return angle_normalize(angle) ** 2 + 0.1 * angle_vel**2 + 0.001 * torque**2
+        return np.arccos(cos_angle) ** 2 + 0.1 * angle_vel**2 + 0.001 * torque**2
