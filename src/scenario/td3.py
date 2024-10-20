@@ -218,6 +218,7 @@ class TD3Scenario(CleanRLScenario):
                     )
                     self.reload_scenario()
                     self.reset_episode()
+                    self.reset_iteration()
 
             # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
             real_next_obs = next_obs.copy()

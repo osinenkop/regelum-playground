@@ -252,6 +252,7 @@ class SACScenario(CleanRLScenario):
                     )
                     self.reload_scenario()
                     self.reset_episode()
+                    self.reset_iteration()
                     break
             # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
             real_next_obs = next_obs.copy()

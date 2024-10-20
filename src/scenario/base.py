@@ -65,11 +65,12 @@ class CleanRLScenario(Scenario):
             [make_env(RgEnv(simulator, running_objective))]
         )
 
-        self.N_episodes = int(
+        self.N_iterations = int(
             total_timesteps / simulator.time_final * simulator.max_step
         )
         self.episode_id = 1
-        self.N_iterations = 1
+        self.iteration_id = 1
+        self.N_episodes = 1
         self.value = 0
 
     @apply_callbacks()
@@ -113,7 +114,7 @@ class CleanRLScenario(Scenario):
             "observation": obs,
             "time": time,
             "episode_id": self.episode_id,
-            "iteration_id": 1,
+            "iteration_id": self.iteration_id,
             "step_id": global_step,
             "action": action,
             "running_objective": reward,
@@ -167,7 +168,7 @@ class CleanRLScenario(Scenario):
         to be aware of the current state in the pipeline. This is a technical
         feature that facilitates proper callback execution and tracking.
         """
-        self.episode_id += 1
+        pass
 
     @apply_callbacks()
     def reload_scenario(self):
@@ -182,6 +183,16 @@ class CleanRLScenario(Scenario):
 
     def run(self):
         raise NotImplementedError("Subclasses must implement the run method")
+
+    @apply_callbacks()
+    def reset_iteration(self):
+        """Reset the iteration and trigger callbacks in Regelum.
+
+        This method updates the iteration ID and allows callbacks to track the
+        current state in the pipeline. In Regelum, an iteration refers to the point
+        when policy gradient methods perform their updates.
+        """
+        self.iteration_id += 1
 
 
 class CleanRLCallback(Callback):
