@@ -85,7 +85,7 @@ To run SAC or TD3 experiments:
    ```bash
    python run.py \
        scenario=sac \
-       system=inv_pendulum_with_gym_observation \
+       system=pendulum_with_gym_observation \
        running_objective=gym_pendulum \
        simulator=casadi_random_state_init \
        scenario.autotune=False \
@@ -99,7 +99,7 @@ To run SAC or TD3 experiments:
    ```bash
    python run.py \
        scenario=td3 \
-       system=inv_pendulum_with_gym_observation \
+       system=pendulum_with_gym_observation \
        running_objective=gym_pendulum \
        simulator=casadi_random_state_init  \
        +seed=4   

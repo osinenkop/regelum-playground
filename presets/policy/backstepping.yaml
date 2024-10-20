@@ -1,4 +1,4 @@
-_target_: src.policy.InvertedPendulumBackstepping
+_target_: src.policy.PendulumBackstepping
 
 energy_gain: 0.03
 backstepping_gain: 2.

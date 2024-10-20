@@ -1,7 +1,7 @@
 _target_: src.simulator.StateInitRandomSamplerSimulator
 
 defaults: 
-  - state_init: inv_pendulum
+  - state_init: pendulum
 
 system: ~ system
 time_final: $ common.time_final

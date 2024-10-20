@@ -3,9 +3,9 @@ from regelum.policy import Policy
 import numpy as np
 from scipy.special import expit
 from src.system import (
-    InvertedPendulum,
-    InvertedPendulumWithFriction,
-    InvertedPendulumWithMotor,
+    Pendulum,
+    PendulumWithFriction,
+    PendulumWithMotor,
 )
 from typing import Union
 from regelum.utils import rg
@@ -30,7 +30,7 @@ def pd_based_on_sin(observation, pd_coeffs=[20, 10]):
     return -pd_coeffs[0] * np.sin(observation[0, 0]) - pd_coeffs[1] * observation[0, 1]
 
 
-class InvPendulumPolicyPD(Policy):
+class PendulumPolicyPD(Policy):
     def __init__(self, pd_coeffs: np.ndarray, action_min: float, action_max: float):
         super().__init__()
 
@@ -47,7 +47,7 @@ class InvPendulumPolicyPD(Policy):
         return np.array([[action]])
 
 
-class InvertedPendulumEnergyBased(Policy):
+class PendulumEnergyBased(Policy):
     def __init__(
         self,
         gain: float,
@@ -56,7 +56,7 @@ class InvertedPendulumEnergyBased(Policy):
         switch_loc: float,
         switch_vel_loc: float,
         pd_coeffs: np.ndarray,
-        system: Union[InvertedPendulum, InvertedPendulumWithFriction],
+        system: Union[Pendulum, PendulumWithFriction],
     ):
         super().__init__()
         self.gain = gain
@@ -102,7 +102,7 @@ class InvertedPendulumEnergyBased(Policy):
         )
 
 
-class InvPendulumEnergyBasedFrictionCompensation(Policy):
+class PendulumEnergyBasedFrictionCompensation(Policy):
     def __init__(
         self,
         gain: float,
@@ -110,7 +110,7 @@ class InvPendulumEnergyBasedFrictionCompensation(Policy):
         action_max: float,
         switch_loc: float,
         pd_coeffs: np.ndarray,
-        system: InvertedPendulumWithFriction,
+        system: PendulumWithFriction,
     ):
         super().__init__()
         self.gain = gain
@@ -160,7 +160,7 @@ class InvPendulumEnergyBasedFrictionCompensation(Policy):
         )
 
 
-class InvPendulumEnergyBasedFrictionAdaptive(Policy):
+class PendulumEnergyBasedFrictionAdaptive(Policy):
     def __init__(
         self,
         gain: float,
@@ -170,7 +170,7 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
         gain_adaptive: float,
         switch_loc: float,
         pd_coeffs: list,
-        system: InvertedPendulumWithFriction,
+        system: PendulumWithFriction,
         friction_coeff_est_init: float = 0,
     ):
         super().__init__()
@@ -233,7 +233,7 @@ class InvPendulumEnergyBasedFrictionAdaptive(Policy):
         )
 
 
-class InvertedPendulumBackstepping(Policy):
+class PendulumBackstepping(Policy):
     def __init__(
         self,
         energy_gain: float,
@@ -242,7 +242,7 @@ class InvertedPendulumBackstepping(Policy):
         pd_coeffs: list[float],
         action_min: float,
         action_max: float,
-        system: InvertedPendulumWithMotor,
+        system: PendulumWithMotor,
     ):
         super().__init__()
 
@@ -296,7 +296,7 @@ class InvertedPendulumBackstepping(Policy):
         )
 
 
-class InvertedPendulumWithMotorPD(Policy):
+class PendulumWithMotorPD(Policy):
     def __init__(self, pd_coeffs: list, action_min: float, action_max: float):
         super().__init__()
 

@@ -1,4 +1,4 @@
-_target_: src.system.InvertedPendulum
+_target_: src.system.PendulumWithMotor
 
 # To adjust system parameters, uncomment the code below
 
@@ -6,6 +6,9 @@ _target_: src.system.InvertedPendulum
 #   mass: 0.127
 #   grav_const: 9.81
 #   length: 0.337
+#   motor_time_const: 0.05
+#   motor_mass: 0.05
+#   motor_radius: 0.04
 
 # The logic behind this is as follows. The case system class constructor contains a code
 #

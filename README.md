@@ -81,7 +81,7 @@ Below are examples with respective terminal run commands.
 ### Proportional-derivative (PD) controller for inverted pendulum
 
 ```shell
-python run.py policy=pd system=inv_pendulum --interactive --fps=10
+python run.py policy=pd system=pendulum --interactive --fps=10
 ```    
 
 Observe it doesn't work with the default action bounds.
@@ -90,7 +90,7 @@ Further, we will see how the energy-based controller does the job.
 To run the PD controller with custom action bounds:
 
 ```shell
-python run.py policy=pd system=inv_pendulum policy.action_min=-2 policy.action_max=2 --interactive --fps=10
+python run.py policy=pd system=pendulum policy.action_min=-2 policy.action_max=2 --interactive --fps=10
 ```  
 
 Making the bounds sufficiently large will help the PD controller to upswing and upright hold the pendulum.
@@ -99,14 +99,14 @@ Making the bounds sufficiently large will help the PD controller to upswing and 
 ### Energy-based controller for inverted pendulum
 
 ```shell
-python run.py policy=energy_based system=inv_pendulum --interactive --fps=10
+python run.py policy=energy_based system=pendulum --interactive --fps=10
 ```  
 
 <!-- TOC --><a name="energy-based-controller-for-inverted-pendulum-with-joint-friction"></a>
 ### Energy-based controller for inverted pendulum with joint friction
 
 ```shell
-python run.py policy=energy_based system=inv_pendulum_with_friction --interactive --fps=10
+python run.py policy=energy_based system=pendulum_with_friction --interactive --fps=10
 ```  
 
 Observe it doesn't work due to ignorance of friction.
@@ -115,7 +115,7 @@ Observe it doesn't work due to ignorance of friction.
 ### Energy-based controller with friction compenstation for inverted pendulum with joint friction
 
 ```shell
-python run.py policy=energy_based_friction_compensation system=inv_pendulum_with_friction --interactive --fps=10
+python run.py policy=energy_based_friction_compensation system=pendulum_with_friction --interactive --fps=10
 ```
 
 This works better than the last one.
@@ -124,7 +124,7 @@ This works better than the last one.
 ### Adaptive energ-based controller for inverted pendulum with joint friction
 
 ```shell
-python run.py policy=energy_based_friction_adaptive system=inv_pendulum_with_friction --interactive --fps=10
+python run.py policy=energy_based_friction_adaptive system=pendulum_with_friction --interactive --fps=10
 ```  
 
 This should also work.
@@ -135,14 +135,14 @@ This should also work.
 This showcases the use of backstepping.
 
 ```shell
-python run.py policy=backstepping system=inv_pendulum_with_motor --interactive --fps=10 
+python run.py policy=backstepping system=pendulum_with_motor --interactive --fps=10 
 ``` 
 
 <!-- TOC --><a name="pd-controller-for-inverted-pendulum-with-motor-dynamics"></a>
 ### PD controller for inverted pendulum with motor dynamics
 
 ```shell
-python run.py policy=motor_pd system=inv_pendulum_with_motor --interactive --fps=10 
+python run.py policy=motor_pd system=pendulum_with_motor --interactive --fps=10 
 ```  
 Notice for it fails to do the job.
 
@@ -198,7 +198,7 @@ Notice how the robot avoids the spot with high cost
 ```
 python run.py \
     scenario=ppo_scenario scenario.discount_factor=0.7\
-    system=inv_pendulum \
+    system=pendulum \
     common.time_final=10 \
     scenario.N_episodes=2 \
     --interactive \
@@ -214,7 +214,7 @@ python run.py \
 ```bash
 python run.py \
     scenario=sac \
-    system=inv_pendulum_with_gym_observation \
+    system=pendulum_with_gym_observation \
     simulator=casadi_random_state_init \
     scenario.autotune=False \
     scenario.policy_lr=0.00079 \
@@ -234,7 +234,7 @@ To run the TD3 algorithm on the inverted pendulum system with a gym-like observa
 ```bash
 python run.py \
     scenario=td3 \
-    system=inv_pendulum_with_gym_observation \
+    system=pendulum_with_gym_observation \
     simulator=casadi_random_state_init  \
     +seed=4   
 ```
@@ -264,7 +264,7 @@ Here is the new section for the README:
 To run the CALF algorithm on the pendulum system, use the following command:
 
 ```shell
-python run.py scenario=calf system=inv_pendulum --interactive --fps=10 common.time_final=10
+python run.py scenario=calf system=pendulum --interactive --fps=10 common.time_final=10
 ```
 
 The CALF algorithm also works with other systems such as `lunar_lander`, `3wrobot_kin_rg` and `cartpole_pg`. Note that `3wrobot_kin_rg` is the system that is natively imported from regelum without overriding the system parameters. For these systems, use the following command (please note that it is not necessary to add `common.time_final=...` in the command, as everything is already preconfigured):

@@ -1,4 +1,4 @@
-_target_: src.policy.InvPendulumPolicyPD
+_target_: src.policy.PendulumPolicyPD
 
 pd_coeffs: = [-0.6, -0.2]
 action_min: -0.1

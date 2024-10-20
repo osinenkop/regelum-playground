@@ -1,4 +1,4 @@
-_target_: src.policy.InvertedPendulumWithMotorPD
+_target_: src.policy.PendulumWithMotorPD
 
 
 pd_coeffs: = [2, 3]

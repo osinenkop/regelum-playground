@@ -1,6 +1,6 @@
 from regelum.utils import rg
 from regelum.system import (
-    InvertedPendulum,
+    Pendulum,
     ThreeWheeledRobotKinematic,
     ThreeWheeledRobotDynamic,
     LunarLander,
@@ -46,7 +46,7 @@ class MyThreeWheeledRobotKinematic(ThreeWheeledRobotKinematic):
 class ThreeWheeledRobotKinematicWithSpot(MyThreeWheeledRobotKinematic): ...
 
 
-class InvertedPendulum(InvertedPendulum):
+class Pendulum(Pendulum):
     """The parameters of this system roughly resemble those of a Quanser Rotary Inverted Pendulum."""
 
     _parameters = {"mass": 0.127, "grav_const": 9.81, "length": 0.337}
@@ -74,7 +74,7 @@ class InvertedPendulum(InvertedPendulum):
         return Dstate
 
 
-# class InvertedPendulumLooseBounds(InvertedPendulum):
+# class PendulumLooseBounds(Pendulum):
 #     """The parameters of this system roughly resemble those of a Quanser Rotary Inverted Pendulum."""
 
 #     _parameters = {"mass": 0.127, "grav_const": 9.81, "length": 0.337}
@@ -102,7 +102,7 @@ class InvertedPendulum(InvertedPendulum):
 #         return Dstate
 
 
-class InvertedPendulumWithGymObservation(InvertedPendulum):
+class PendulumWithGymObservation(Pendulum):
     _dim_observation = 3
 
     def _get_observation(self, time, state, inputs):
@@ -113,7 +113,7 @@ class InvertedPendulumWithGymObservation(InvertedPendulum):
         return observation
 
 
-class InvertedPendulumWithFriction(InvertedPendulum):
+class PendulumWithFriction(Pendulum):
     """The parameters of this system roughly resemble those of a Quanser Rotary Inverted Pendulum."""
 
     _parameters = {
@@ -146,7 +146,7 @@ class InvertedPendulumWithFriction(InvertedPendulum):
         return Dstate
 
 
-class InvertedPendulumWithMotor(InvertedPendulum):
+class PendulumWithMotor(Pendulum):
     """The parameters of this system roughly resemble those of a Quanser Rotary Inverted Pendulum."""
 
     _parameters = {

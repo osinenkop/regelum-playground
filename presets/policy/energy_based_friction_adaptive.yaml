@@ -1,4 +1,4 @@
-_target_: src.policy.InvPendulumEnergyBasedFrictionAdaptive
+_target_: src.policy.PendulumEnergyBasedFrictionAdaptive
 
 gain: 0.03
 action_min: -0.1
